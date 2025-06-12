@@ -28,6 +28,7 @@ import {Audio} from 'expo-av';
 import {Platform} from "react-native";
 import {ToastProvider} from "react-native-toast-notifications";
 import BadgeScreen from "./screens/badges/BadgeScreen";
+import writeBadges from "./backend/badges/writeBadges";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -179,6 +180,15 @@ export default function App() {
     // console.log("Expo Push Token:", expoPushToken?.data ?? "")
     // const data = JSON.stringify(notification, undefined, 2);
     // console.log("Notification Data:", data)
+
+    // // For Writing new badges
+    // useEffect(() => {
+    //     writeBadges().then(() => {
+    //         console.log("Badges written successfully");
+    //     }, (error) => {
+    //         console.error("Error writing badges:", error);
+    //     });
+    // }, []);
 
     // For adding audio
     useEffect(() => {
