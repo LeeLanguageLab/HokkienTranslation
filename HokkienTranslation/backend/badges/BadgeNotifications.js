@@ -1,9 +1,6 @@
 // backend/badges/BadgeNotifications.js
 import { Alert } from 'react-native';
 
-// Note: You'll need to get the toast instance from your component
-// We'll create functions that accept the toast instance as a parameter
-
 export const showBadgeNotification = (newBadges, toast) => {
   if (newBadges.length === 1) {
     const badge = newBadges[0];

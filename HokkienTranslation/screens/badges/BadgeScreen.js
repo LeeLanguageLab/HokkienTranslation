@@ -7,17 +7,26 @@ import {
     FlatList,
     SafeAreaView,
     ActivityIndicator,
-    RefreshControl
+    RefreshControl, TouchableOpacity
 } from 'react-native';
 import {useRoute} from '@react-navigation/native';
 import Badge from './Badge';
 import {getBadgeScreenData} from "../../backend/badges/BadgesFunctions";
 import {useTheme} from "../context/ThemeProvider";
 import {createDynamicStyles} from "./DynamicStyles";
+import getCurrentUserActual from "../../backend/database/GetCurrentUserActual";
 
 const BadgeScreen = () => {
     const route = useRoute();
-    const userId = route.params?.userId;
+    const [user, setUser] = useState(null);
+    useEffect(() => {
+        const loadUser = async () => {
+            const userActual = await getCurrentUserActual();
+            setUser(userActual);
+        };
+        loadUser();
+    }, []);
+
     const {themes, theme} = useTheme();
     const colors = themes?.[theme] || {};
 
@@ -63,11 +72,11 @@ const BadgeScreen = () => {
             if (showLoader) setLoading(true);
             setError(null);
 
-            if (!userId) {
-                throw new Error('No userId provided');
+            if (!user?.uid) {
+                throw new Error('No user Id provided');
             }
 
-            const data = await getBadgeScreenData(userId);
+            const data = await getBadgeScreenData(user.uid);
             const validatedData = validateBadgeData(data);
             setBadgeData(validatedData);
 
@@ -82,13 +91,15 @@ const BadgeScreen = () => {
     };
 
     useEffect(() => {
-        if (userId) {
-            loadBadgeData();
+        if (user?.uid) {
+            loadBadgeData().catch(error => {
+                console.error('Error in loading badge data', error);
+            });
         } else {
             setLoading(false);
             setError('No user ID provided');
         }
-    }, [userId]);
+    }, [user]);
 
     // Refresh function
     const onRefresh = () => {
@@ -164,6 +175,15 @@ const BadgeScreen = () => {
                 >
                     <Text style={dynamicStyles.retryButtonText}>Retry</Text>
                 </TouchableOpacity>
+            </View>
+        );
+    }
+
+    if (!user) {
+        return (
+            <View style={dynamicStyles.loadingContainer}>
+                <ActivityIndicator size="large" color={colors.onPrimaryContainer || '#3b82f6'}/>
+                <Text style={dynamicStyles.loadingText}>Loading user...</Text>
             </View>
         );
     }
@@ -282,5 +302,4 @@ const BadgeScreen = () => {
 };
 
 
-
-export default Badge;
+export default BadgeScreen;

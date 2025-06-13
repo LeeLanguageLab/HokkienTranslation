@@ -45,7 +45,7 @@ export const getUserAchievements = async (userId) => {
 // Get user stats
 export const getUserStats = async (userId) => {
     try {
-        const userStatsRef = doc(db, 'users', userId, 'stats', 'current');
+        const userStatsRef = doc(db, 'users', userId, 'stats');
         const snapshot = await getDoc(userStatsRef);
 
         return snapshot.exists() ? snapshot.data() : null;
@@ -95,7 +95,7 @@ export const updateAchievementProgress = async (userId, achievementId, progress)
 // Update user stats
 export const updateUserStats = async (userId, statsUpdate) => {
     try {
-        const userStatsRef = doc(db, 'users', userId, 'stats', 'current');
+        const userStatsRef = doc(db, 'users', userId, 'stats');
 
         await setDoc(userStatsRef, {
             ...statsUpdate,
