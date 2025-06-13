@@ -274,54 +274,5 @@
       "target_value": 50,
       "comparison": ">="
     }
-  },
-{
-  "streak_three": {
-    "achievement_id": "streak_three",
-    "name": "Three Day Streak",
-    "description": "Play for 3 days in a row",
-    "category": "daily_streak",
-    "rarity": "common",
-    "required_criteria": {
-      "type": "daily_streak",
-      "target_value": 3,
-      "comparison": ">="
-    }
-  },
-  "streak_seven": {
-    "achievement_id": "streak_seven",
-    "name": "Week Warrior",
-    "description": "Play for 7 days in a row",
-    "category": "daily_streak",
-    "rarity": "uncommon",
-    "required_criteria": {
-      "type": "daily_streak",
-      "target_value": 7,
-      "comparison": ">="
-    }
-  },
-  "streak_thirty": {
-    "achievement_id": "streak_thirty",
-    "name": "Monthly Master",
-    "description": "Play for 30 days in a row",
-    "category": "daily_streak",
-    "rarity": "epic",
-    "required_criteria": {
-      "type": "daily_streak",
-      "target_value": 30,
-      "comparison": ">="
-    }
-  },
-  "streak_fifty": {
-    "achievement_id": "max_streak_fifty",
-    "name": "Streak Legend",
-    "description": "Achieve a maximum streak of 50 days",
-    "category": "daily_streak",
-    "rarity": "legendary",
-    "required_criteria": {
-      "type": "max_daily_streak",
-      "target_value": 50,
-      "comparison": ">="
-    }
   }
 }
