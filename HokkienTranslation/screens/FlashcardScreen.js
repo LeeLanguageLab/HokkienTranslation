@@ -611,6 +611,7 @@ const FlashcardScreen = ({ route, navigation }) => {
         <NavigationButtons // back to categories & quiz buttons 
           colors={colors}
           flashcardListName={flashcardListName}
+          deckID={deckID}
         />
 
         {errorMessage && (
