@@ -59,7 +59,6 @@ const FlashcardCategory = () => {
   const colors = themes[theme];
 
   const [display, setDisplay] = useState([]);
-  const [displayDecks, setDisplayDecks] = useState(false);
   const isFocused = useIsFocused();
 
   // check for auth when getting categories
@@ -102,7 +101,6 @@ const FlashcardCategory = () => {
   const handleBackPress = () => {
     index = 0;
     setDisplay(categories);
-    setDisplayDecks(false);
     curCategory = "";
   };
 
@@ -196,7 +194,6 @@ const FlashcardCategory = () => {
         index = 1;
       }
       setDisplay(decks);
-      setDisplayDecks(true);
       console.log("Decks", decks)
       return;
     }
@@ -329,13 +326,13 @@ const FlashcardCategory = () => {
       >
         {/* Expected Points Display */}
 
-        {displayDecks &&
+        {category.unfamiliarityScore &&
           <Text
             style={{
               position: "absolute",
               bottom: 5,
               right: 10,
-              fontSize: 14,
+              fontSize: 10,
               fontWeight: "bold",
               color: colors.onSurfaceVariant,
             }}
@@ -343,7 +340,7 @@ const FlashcardCategory = () => {
             Expected {category.unfamiliarityScore} pts
           </Text>
         }
-        {displayDecks && category.isNewDeck &&
+        {category.unfamiliarityScore && category.isNewDeck &&
           <Text
             style={{
               position: "absolute",

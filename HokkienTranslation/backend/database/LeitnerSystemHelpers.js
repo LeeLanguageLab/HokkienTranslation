@@ -280,7 +280,7 @@ export const countBox3Flashcards = async (userId) => {
     }
 };
 
-/* Function for getting how many flashcards a user has learned (box 3). */
+/* Function for getting how many flashcards a user has learned (box 2). */
 export const countBox2Flashcards = async (userId) => {
     try {
         const q = query(
@@ -297,7 +297,7 @@ export const countBox2Flashcards = async (userId) => {
     }
 };
 
-/* Function for getting how many flashcards a user has learned (box 3). */
+/* Function for getting how many flashcards a user has learned (box 1). */
 export const countBox1Flashcards = async (userId) => {
     try {
         const q = query(
