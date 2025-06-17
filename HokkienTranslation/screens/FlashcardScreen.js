@@ -608,7 +608,7 @@ const FlashcardScreen = ({ route, navigation }) => {
   return (
     <ScrollView style={{ backgroundColor: colors.surface }}>
       <Box flex={1} background={colors.surface}>
-        <NavigationButtons
+        <NavigationButtons // back to categories & quiz buttons 
           colors={colors}
           flashcardListName={flashcardListName}
         />
@@ -738,9 +738,6 @@ const FlashcardScreen = ({ route, navigation }) => {
                 </Box>
               </Animated.View>
             </TouchableOpacity>
-
-
-
 
             <HStack space={4} alignItems="center">
               <Pressable

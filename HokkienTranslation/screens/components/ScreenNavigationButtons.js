@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 import { Button, HStack, Text } from "native-base";
 import { useNavigation } from "@react-navigation/native";
 
-const ScreenNavigationButtons = ({ colors, flashcardListName }) => {
+const ScreenNavigationButtons = ({ colors, flashcardListName, deckID }) => {
   const navigation = useNavigation();
   const [isPressedCatButton, setIsPressedCatButton] = useState(false);
   const [isPressedQuizButton, setIsPressedQuizButton] = useState(false);
@@ -78,7 +78,10 @@ const ScreenNavigationButtons = ({ colors, flashcardListName }) => {
         marginLeft="auto"
         onPressIn={() => setIsPressedQuizButton(true)}
         onPressOut={() => setIsPressedQuizButton(false)}
-        onPress={() => navigation.navigate("Quiz", { flashcardListName })}
+        onPress={() => navigation.navigate("Quiz", {
+          flashcardListName,
+          deckID, 
+        })}        
         background={colors.primaryContainer}
         _text={{ color: colors.onSurface }}
         borderRadius="21"
