@@ -59,6 +59,7 @@ const QuizScreen = ({ route }) => {
 
   const flashcardListName = route.params.flashcardListName;
   console.log("QuizScreen: flashcardListName", flashcardListName);
+  const deckID = route.params.deckID;    
 
   const translateText = async (text, language) => {
     try {
@@ -93,17 +94,19 @@ const QuizScreen = ({ route }) => {
     const fetchFlashcards = async () => {
       try {
         setLoading(true);
-        const querySnapshot = await getDocs(collection(db, "flashcardList"));
-        let flashcardListDoc;
-
-        querySnapshot.forEach((doc) => {
-          if (doc.data().name === flashcardListName) {
-            flashcardListDoc = doc;
-          }
-        });
-
-        if (!flashcardListDoc) {
-          console.error("No flashcard list found with the given name");
+        if (!deckID) {
+          console.error("missing deckID");
+          setErrorMessage("Deck ID not provided. Cannot fetch quiz data.");
+          setLoading(false);
+          return;
+        }
+        
+        const flashcardListRef = doc(db, "flashcardList", deckID);
+        const flashcardListDoc = await getDoc(flashcardListRef);
+        
+        if (!flashcardListDoc.exists()) {
+          console.error("No flashcard list for deckID: ", deckID);
+          setErrorMessage("Deck not found");
           setLoading(false);
           return;
         }
@@ -263,7 +266,7 @@ const QuizScreen = ({ route }) => {
         );
         const quizQuery = query(
           collection(db, "flashcardQuiz"),
-          where("flashcardListId", "==", flashcardListName)
+          where("flashcardListId", "==", deckID)
         );
 
         const quizQuerySnapshot = await getDocs(quizQuery);
