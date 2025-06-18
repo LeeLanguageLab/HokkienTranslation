@@ -356,7 +356,7 @@ export const countBox2Flashcards = async (userId) => {
         // return querySnapshot.size;
 
         const userBoxesRef = collection(db, "leitnerBoxes", userId, "userBoxes");
-        const q = query(userBoxesRef, where("boxNum", "==", 1));
+        const q = query(userBoxesRef, where("boxNum", "==", 2));
         const querySnapshot = await getDocs(q);
         return querySnapshot.size;
 
