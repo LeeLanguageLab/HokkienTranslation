@@ -1,11 +1,13 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {View, Text, HStack} from "native-base";
 import {StyleSheet, TouchableOpacity} from "react-native";
 import * as Progress from "react-native-progress";
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import getCurrentUser from "../../backend/database/GetCurrentUser";
 import {getUserLevel, getUserPoints} from "../../backend/database/LeitnerSystemHelpers";
 import {useTheme} from "../context/ThemeProvider"
+import {recordLevelCompletion} from "../../backend/badges/EventTracker";
+import getCurrentUserActual from "../../backend/database/GetCurrentUserActual";
 
 export const LevelProgress = () => {
     const [loading, setLoading] = useState(true);
@@ -18,9 +20,11 @@ export const LevelProgress = () => {
     const colors = themes?.[theme] || {};
     const navigation = useNavigation();
 
+    const previousLevel = useRef(null)
+
     const pointsPerLevel = 100;
 
-    useEffect(() => {
+    useFocusEffect(() => {
         const fetchUserLevelData = async () => {
             try {
                 const user = await getCurrentUser();
@@ -29,14 +33,29 @@ export const LevelProgress = () => {
                     return;
                 }
 
-                setCurrentUser(user); // Store the user for navigation
-
+                setCurrentUser(user);
                 const level = await getUserLevel(user, pointsPerLevel);
                 const points = await getUserPoints(user);
 
-                setUserLevel(level || 1);
-                setUserPoints(points || 0);
-                setLevelProgress(((points || 0) - (((level || 1) - 1) * 100)) / 100);
+                const currentLevel = level || 1;
+                const currentPoints = points + 100 || 0;
+
+                // Check if level has changed
+                if (previousLevel.current !== null && previousLevel.current < currentLevel) {
+                    const userActual = await getCurrentUserActual()
+                    const userId = userActual?.uid;
+                    await recordLevelCompletion(userId, currentLevel)
+                    console.log(`Level up! ${previousLevel.current} → ${currentLevel}`);
+                }
+
+                // Update the previous level reference
+                previousLevel.current = currentLevel;
+                console.log(`Current Level: ${currentLevel}, Progress: ${levelProgress}`);
+
+                setUserLevel(currentLevel);
+                setUserPoints(currentPoints);
+                setLevelProgress((currentPoints - ((currentLevel - 1) * 100)) / 100);
+
             } catch (error) {
                 console.error("Error fetching user level:", error);
                 setUserLevel(1);
@@ -48,7 +67,7 @@ export const LevelProgress = () => {
         };
 
         fetchUserLevelData();
-    }, []);
+    });
 
     const handlePress = () => {
         if (currentUser) {
@@ -93,7 +112,7 @@ const styles = StyleSheet.create({
     levelContainer: {
         alignItems: 'center',
         justifyContent: 'center',
-        padding: 8, // Add padding for better touch area
+        padding: 8,
     },
     levelText: {
         fontSize: 14,

@@ -1,6 +1,7 @@
 import { updateUserStats, getUserStats } from './BadgesFunctions';
 import { checkAndUpdateStreak } from '../streaks/CheckAndUpdateStreak';
 import { evaluateAndAwardBadges } from './BadgeEvaluator';
+import {serverTimestamp} from "firebase/firestore";
 
 export const recordEvent = async (userId, eventType, eventData = {}, toast = null) => {
   try {
@@ -8,7 +9,7 @@ export const recordEvent = async (userId, eventType, eventData = {}, toast = nul
     const currentStats = await getUserStats(userId) || {};
 
     let statsUpdate = {
-      last_activity: new Date().toISOString()
+      last_activity: serverTimestamp()
     };
 
     // Handle different event types (same as before)
@@ -68,7 +69,6 @@ export const recordEvent = async (userId, eventType, eventData = {}, toast = nul
       is_new_streak: streakResult.isNewStreak || false
     };
 
-    // Check for new badges (pass toast to the evaluator)
     const newBadges = await evaluateAndAwardBadges(userId, updatedStats, eventType, eventData, toast);
 
     console.log(`Event ${eventType} recorded for user ${userId}`);
@@ -85,7 +85,7 @@ export const recordQuizCompletion = async (userId, quizData, toast = null) => {
   const result = await recordEvent(userId, 'QUIZ_COMPLETED', quizData, toast);
 
   // Record high score if applicable
-  if (quizData.score && quizData.score >= 100) {
+  if (quizData.score) {
     await recordEvent(userId, 'HIGH_SCORE', { score: quizData.score }, toast);
   }
 

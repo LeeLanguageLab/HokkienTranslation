@@ -1,4 +1,3 @@
-// backend/badges/BadgeNotifications.js
 import { Alert } from 'react-native';
 
 export const showBadgeNotification = (newBadges, toast) => {

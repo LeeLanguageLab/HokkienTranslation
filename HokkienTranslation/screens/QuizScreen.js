@@ -74,7 +74,7 @@ const QuizScreen = ({route}) => {
     const [quizStartTime, setQuizStartTime] = useState(Date.now());
 
     const flashcardListName = route.params.flashcardListName;
-    console.log("QuizScreen: flashcardListName", flashcardListName);
+    // console.log("QuizScreen: flashcardListName", flashcardListName);
 
     const translateText = async (text, language) => {
         try {

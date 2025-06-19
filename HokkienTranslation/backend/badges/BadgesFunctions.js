@@ -7,7 +7,7 @@ import {
     updateDoc,
     query,
     where,
-    orderBy
+    orderBy, serverTimestamp
 } from 'firebase/firestore';
 import {db} from '../database/Firebase';
 
@@ -45,10 +45,10 @@ export const getUserAchievements = async (userId) => {
 // Get user stats
 export const getUserStats = async (userId) => {
     try {
-        const userStatsRef = doc(db, 'users', userId, 'stats');
+        const userStatsRef = doc(db, 'users', userId);
         const snapshot = await getDoc(userStatsRef);
 
-        return snapshot.exists() ? snapshot.data() : null;
+        return snapshot.exists() ? snapshot.data().stats : null;
     } catch (error) {
         console.error('Error fetching user stats:', error);
         throw error;
@@ -62,7 +62,7 @@ export const awardAchievement = async (userId, achievementId, progress = 0) => {
 
         await setDoc(userAchievementRef, {
             achievement_id: achievementId,
-            earned_at: new Date().toISOString(),
+            earned_at: serverTimestamp(),
             progress: progress,
             is_completed: true
         });
@@ -83,7 +83,7 @@ export const updateAchievementProgress = async (userId, achievementId, progress)
             achievement_id: achievementId,
             progress: progress,
             is_completed: false,
-            updated_at: new Date().toISOString()
+            updatedated_at: serverTimestamp()
         }, {merge: true});
 
     } catch (error) {
@@ -95,11 +95,10 @@ export const updateAchievementProgress = async (userId, achievementId, progress)
 // Update user stats
 export const updateUserStats = async (userId, statsUpdate) => {
     try {
-        const userStatsRef = doc(db, 'users', userId, 'stats');
+        const userStatsRef = doc(db, 'users', userId);
 
         await setDoc(userStatsRef, {
-            ...statsUpdate,
-            updated_at: new Date().toISOString()
+            stats: statsUpdate,
         }, {merge: true});
 
     } catch (error) {
