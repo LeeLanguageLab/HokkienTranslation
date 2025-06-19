@@ -24,7 +24,7 @@ export const LevelProgress = () => {
 
     const pointsPerLevel = 100;
 
-    useFocusEffect(() => {
+    useEffect(() => {
         const fetchUserLevelData = async () => {
             try {
                 const user = await getCurrentUser();
@@ -38,7 +38,7 @@ export const LevelProgress = () => {
                 const points = await getUserPoints(user);
 
                 const currentLevel = level || 1;
-                const currentPoints = points + 100 || 0;
+                const currentPoints = points || 0;
 
                 // Check if level has changed
                 if (previousLevel.current !== null && previousLevel.current < currentLevel) {
@@ -50,7 +50,6 @@ export const LevelProgress = () => {
 
                 // Update the previous level reference
                 previousLevel.current = currentLevel;
-                console.log(`Current Level: ${currentLevel}, Progress: ${levelProgress}`);
 
                 setUserLevel(currentLevel);
                 setUserPoints(currentPoints);
@@ -67,7 +66,7 @@ export const LevelProgress = () => {
         };
 
         fetchUserLevelData();
-    });
+    }, []);
 
     const handlePress = () => {
         if (currentUser) {
