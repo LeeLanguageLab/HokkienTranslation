@@ -122,7 +122,7 @@ const Badge = ({
                 ]}
               />
             </View>
-            <Text style={dynamicStyles.progressText}>
+            <Text style={dynamicStyles.progressTextBadge}>
               {progress} / {safeBadge.required_criteria.target_value}
             </Text>
           </View>

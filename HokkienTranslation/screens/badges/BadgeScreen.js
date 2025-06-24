@@ -7,7 +7,8 @@ import {
     FlatList,
     SafeAreaView,
     ActivityIndicator,
-    RefreshControl, TouchableOpacity
+    RefreshControl, TouchableOpacity,
+    SectionList
 } from 'react-native';
 import {useRoute} from '@react-navigation/native';
 import Badge from './Badge';
@@ -16,8 +17,10 @@ import {useTheme} from "../context/ThemeProvider";
 import {createDynamicStyles} from "./DynamicStyles";
 import getCurrentUserActual from "../../backend/database/GetCurrentUserActual";
 
+
 const BadgeScreen = () => {
     const route = useRoute();
+    const numColumns = 2;
     const [user, setUser] = useState(null);
     useEffect(() => {
         const loadUser = async () => {
@@ -201,105 +204,183 @@ const BadgeScreen = () => {
     // Calculate overall progress safely
     const totalBadges = badgeData.allBadges.length || 0;
     const earnedCount = earnedBadges.length || 0;
-    const progressPercentage = totalBadges > 0 ? (earnedCount / totalBadges) * 100 : 0;
+    const progressPercentage = totalBadges > 0 ? (earnedCount / totalBadges) * 100 : 0
 
-    return (
-        <SafeAreaView style={dynamicStyles.container}>
-            {/* Header with overall progress */}
-            <View style={dynamicStyles.header}>
-                <Text style={dynamicStyles.headerTitle}>Badge Collection</Text>
-                <View style={dynamicStyles.progressContainer}>
-                    <Text style={dynamicStyles.progressText}>
-                        {earnedCount} of {totalBadges} badges earned
-                    </Text>
-                    <View style={dynamicStyles.progressBar}>
+    const allBadgesData = [
+        ...earnedBadges.map(badge => ({...badge, isEarned: true})),
+        ...unearnedBadges.map(badge => ({...badge, isEarned: false}))
+    ];
+    const sections = [
+        {
+            title: '🏆 Badges Earned',
+            count: earnedCount,
+            data: earnedBadges.map(badge => ({...badge, isEarned: true}))
+        },
+        {
+            title: '🔒 Badges to be Acquired',
+            count: unearnedBadges.length,
+            data: unearnedBadges.map(badge => ({...badge, isEarned: false}))
+        }
+    ];
+
+    const renderHeader = () => (
+        <View style={dynamicStyles.header}>
+            {/*<Text style={dynamicStyles.headerTitle}>Badge Collection</Text>*/}
+
+            <View style={dynamicStyles.progressContainer}>
+                <Text style={dynamicStyles.progressText}>
+                    {earnedCount} of {totalBadges} badges earned
+                </Text>
+
+                {/* Progress Bar */}
+                <View style={dynamicStyles.progressBar}>
+                    <View style={dynamicStyles.progressBarTrack}>
                         <View
                             style={[
                                 dynamicStyles.progressFill,
-                                {width: `${Math.max(0, Math.min(progressPercentage, 100))}%`}
+                                {width: `${Math.round(progressPercentage)}%`}
                             ]}
                         />
                     </View>
-                    <Text style={dynamicStyles.progressPercentage}>
-                        {Math.round(progressPercentage)}% Complete
-                    </Text>
                 </View>
+
+                <Text style={dynamicStyles.progressPercentage}>
+                    {Math.round(progressPercentage)}% Complete
+                </Text>
             </View>
+        </View>
+    );
 
-            <ScrollView
-                style={dynamicStyles.scrollView}
-                contentContainerStyle={dynamicStyles.scrollContent}
-                showsVerticalScrollIndicator={false}
+    const renderSectionHeader = ({section}) => (
+        <View style={dynamicStyles.sectionHeader}>
+            <Text style={dynamicStyles.sectionTitle}>{section.title}</Text>
+            <View style={dynamicStyles.badgeCount}>
+                <Text style={dynamicStyles.badgeCountText}>{section.count}</Text>
+            </View>
+        </View>
+    );
+
+    return (
+        <SafeAreaView style={dynamicStyles.container}>
+            <FlatList
+                data={allBadgesData}
+                renderItem={({item}) => renderBadgeItem({item, isEarned: item.isEarned})}
+                keyExtractor={(item, index) => item.achievement_id || `badge-${index}`}
+                numColumns={2}
+                ListHeaderComponent={renderHeader}
                 refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
-                        tintColor={colors.onPrimaryContainer || '#3b82f6'}
-                    />
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
                 }
-            >
-                {/* Earned Badges Section */}
-                <View style={dynamicStyles.section}>
-                    <View style={dynamicStyles.sectionHeader}>
-                        <Text style={dynamicStyles.sectionTitle}>🏆 Badges Earned</Text>
-                        <View style={dynamicStyles.badgeCount}>
-                            <Text style={dynamicStyles.badgeCountText}>{earnedCount}</Text>
-                        </View>
-                    </View>
-
-                    {earnedBadges.length > 0 ? (
-                        <FlatList
-                            data={earnedBadges}
-                            renderItem={({item}) => renderBadgeItem({item, isEarned: true})}
-                            keyExtractor={(item, index) => item?.achievement_id || `earned-${index}`}
-                            numColumns={1}
-                            scrollEnabled={false}
-                            contentContainerStyle={dynamicStyles.badgeList}
-                        />
-                    ) : (
-                        <View style={dynamicStyles.emptyState}>
-                            <Text style={dynamicStyles.emptyStateText}>No badges earned yet</Text>
-                            <Text style={dynamicStyles.emptyStateSubtext}>
-                                Start completing quizzes and levels to earn your first badge!
-                            </Text>
-                        </View>
-                    )}
-                </View>
-
-                {/* Separator */}
-                <View style={dynamicStyles.separator}/>
-
-                {/* Unearned Badges Section */}
-                <View style={dynamicStyles.section}>
-                    <View style={dynamicStyles.sectionHeader}>
-                        <Text style={dynamicStyles.sectionTitle}>🔒 Badges to be Acquired</Text>
-                        <View style={dynamicStyles.badgeCount}>
-                            <Text style={dynamicStyles.badgeCountText}>{unearnedBadges.length}</Text>
-                        </View>
-                    </View>
-
-                    {unearnedBadges.length > 0 ? (
-                        <FlatList
-                            data={unearnedBadges}
-                            renderItem={({item}) => renderBadgeItem({item, isEarned: false})}
-                            keyExtractor={(item, index) => item?.achievement_id || `unearned-${index}`}
-                            numColumns={1}
-                            scrollEnabled={false}
-                            contentContainerStyle={dynamicStyles.badgeList}
-                        />
-                    ) : (
-                        <View style={dynamicStyles.emptyState}>
-                            <Text style={dynamicStyles.emptyStateText}>All badges earned!</Text>
-                            <Text style={dynamicStyles.emptyStateSubtext}>
-                                Congratulations! You've earned every available badge.
-                            </Text>
-                        </View>
-                    )}
-                </View>
-            </ScrollView>
+                contentContainerStyle={dynamicStyles.scrollContent}
+                columnWrapperStyle={dynamicStyles.row}
+            />
         </SafeAreaView>
     );
 };
+
+
+// return (
+//     <SafeAreaView style={dynamicStyles.container}>
+//         {/* Header with overall progress */}
+//         <View style={dynamicStyles.header}>
+//             <Text style={dynamicStyles.headerTitle}>Badge Collection</Text>
+//             <View style={dynamicStyles.progressContainer}>
+//                 <Text style={dynamicStyles.progressText}>
+//                     {earnedCount} of {totalBadges} badges earned
+//                 </Text>
+//                 <View style={dynamicStyles.progressBar}>
+//                     <View
+//                         style={[
+//                             dynamicStyles.progressFill,
+//                             {width: `${Math.max(0, Math.min(progressPercentage, 100))}%`}
+//                         ]}
+//                     />
+//                 </View>
+//                 <Text style={dynamicStyles.progressPercentage}>
+//                     {Math.round(progressPercentage)}% Complete
+//                 </Text>
+//             </View>
+//         </View>
+//
+//         <ScrollView
+//             style={dynamicStyles.scrollView}
+//             contentContainerStyle={dynamicStyles.scrollContent}
+//             showsVerticalScrollIndicator={false}
+//             refreshControl={
+//                 <RefreshControl
+//                     refreshing={refreshing}
+//                     onRefresh={onRefresh}
+//                     tintColor={colors.onPrimaryContainer || '#3b82f6'}
+//                 />
+//             }
+//         >
+//             {/* Earned Badges Section */}
+//             <View style={dynamicStyles.section}>
+//                 <View style={dynamicStyles.sectionHeader}>
+//                     <Text style={dynamicStyles.sectionTitle}>🏆 Badges Earned</Text>
+//                     <View style={dynamicStyles.badgeCount}>
+//                         <Text style={dynamicStyles.badgeCountText}>{earnedCount}</Text>
+//                     </View>
+//                 </View>
+//
+//                 {earnedBadges.length > 0 ? (
+//                     <FlatList
+//                         key={`earned-${numColumns}`}
+//                         data={earnedBadges}
+//                         renderItem={({item}) => renderBadgeItem({item, isEarned: true})}
+//                         keyExtractor={(item, index) => item?.achievement_id || `earned-${index}`}
+//                         numColumns={2}
+//                         // scrollEnabled={false}
+//                         contentContainerStyle={dynamicStyles.badgeList}
+//                         columnWrapperStyle={dynamicStyles.row}
+//                     />
+//                 ) : (
+//                     <View style={dynamicStyles.emptyState}>
+//                         <Text style={dynamicStyles.emptyStateText}>No badges earned yet</Text>
+//                         <Text style={dynamicStyles.emptyStateSubtext}>
+//                             Start completing quizzes and levels to earn your first badge!
+//                         </Text>
+//                     </View>
+//                 )}
+//             </View>
+//
+//             {/* Separator */}
+//             <View style={dynamicStyles.separator}/>
+//
+//             {/* Unearned Badges Section */}
+//             <View style={dynamicStyles.section}>
+//                 <View style={dynamicStyles.sectionHeader}>
+//                     <Text style={dynamicStyles.sectionTitle}>🔒 Badges to be Acquired</Text>
+//                     <View style={dynamicStyles.badgeCount}>
+//                         <Text style={dynamicStyles.badgeCountText}>{unearnedBadges.length}</Text>
+//                     </View>
+//                 </View>
+//
+//                 {unearnedBadges.length > 0 ? (
+//                     <FlatList
+//                         key={`unearned-${numColumns}`}
+//                         data={unearnedBadges}
+//                         renderItem={({item}) => renderBadgeItem({item, isEarned: false})}
+//                         keyExtractor={(item, index) => item?.achievement_id || `unearned-${index}`}
+//                         numColumns={2}
+//                         // scrollEnabled={false}
+//                         contentContainerStyle={dynamicStyles.badgeList}
+//                         columnWrapperStyle={dynamicStyles.row}
+//                     />
+//                 ) : (
+//                     <View style={dynamicStyles.emptyState}>
+//                         <Text style={dynamicStyles.emptyStateText}>All badges earned!</Text>
+//                         <Text style={dynamicStyles.emptyStateSubtext}>
+//                             Congratulations! You've earned every available badge.
+//                         </Text>
+//                     </View>
+//                 )}
+//             </View>
+//         </ScrollView>
+//     </SafeAreaView>
+// );
+// }
+// ;
 
 
 export default BadgeScreen;

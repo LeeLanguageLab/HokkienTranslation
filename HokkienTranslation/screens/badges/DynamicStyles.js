@@ -58,6 +58,13 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
         fontWeight: '500',
     },
 
+    progressTextBadge: {
+        fontSize: 10,
+        color: colors.onSurfaceVariant || '#6b7280',
+        marginBottom: 8,
+        fontWeight: '500',
+    },
+
     progressPercentage: {
         fontSize: 12,
         fontWeight: '600',
@@ -75,7 +82,7 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
 
     // Section Styles (Missing)
     section: {
-        paddingHorizontal: 16,
+        // paddingHorizontal: 16,
         paddingVertical: 20,
     },
 
@@ -93,7 +100,6 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
         color: colors.onSurface || '#1f2937',
     },
 
-    // Badge Count Styles (Missing)
     badgeCount: {
         backgroundColor: colors.primaryContainer || '#3b82f6',
         borderRadius: 12,
@@ -111,10 +117,9 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
         fontWeight: '600',
     },
 
-    // Badge List Styles (Missing)
     badgeList: {
         alignItems: 'center',
-        paddingHorizontal: 8,
+        paddingVertical: 4,
     },
 
     badgeItemContainer: {
@@ -123,14 +128,14 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
         alignItems: 'center',
     },
 
-    // Empty State Styles (Missing)
     emptyState: {
         alignItems: 'center',
-        paddingVertical: 40,
-        paddingHorizontal: 20,
+        paddingVertical: 32,
+        paddingHorizontal: 16,
         backgroundColor: colors.categoriesContainer || '#ffffff',
         borderRadius: 12,
         marginHorizontal: 8,
+        marginVertical: 8,
         borderWidth: 1,
         borderColor: colors.outlineVariant || '#e5e7eb',
         borderStyle: 'dashed',
@@ -153,7 +158,6 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
         opacity: 0.8,
     },
 
-    // Separator Styles (Missing)
     separator: {
         height: 1,
         backgroundColor: colors.outlineVariant || '#e5e7eb',
@@ -161,24 +165,25 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
         marginVertical: 8,
     },
 
-    // Existing Badge Styles (Enhanced with theme colors)
     badgeCard: {
         backgroundColor: colors.surface || '#ffffff',
-        borderRadius: 20,
-        padding: 24,
-        margin: 8,
+        borderRadius: 16,
+        padding: 16,
+        margin: 6,
         shadowColor: colors.onSurface || '#000',
         shadowOffset: {
             width: 0,
-            height: 4,
+            height: 2,
         },
-        shadowOpacity: 0.1,
-        shadowRadius: 6,
-        elevation: 8,
+        shadowOpacity: 0.08,
+        shadowRadius: 4,
+        elevation: 4,
         borderWidth: 1,
         borderColor: colors.outlineVariant || '#e5e7eb',
-        width: 300,
+        width: 150,
+        height: 250,
         alignItems: 'center',
+        justifyContent: 'center',
     },
 
     earnedCard: {
@@ -194,15 +199,15 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
     // Badge Icon Styles
     badgeIconContainer: {
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 12,
     },
 
     badgeIconOuter: {
-        width: 120,
-        height: 120,
-        borderRadius: 60,
-        borderWidth: 4,
-        padding: 6,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        borderWidth: 2,
+        padding: 3,
         justifyContent: 'center',
         alignItems: 'center',
         borderColor: isEarned ? (rarityColors?.[0] || colors.onPrimaryContainer) : colors.outlineVariant,
@@ -211,7 +216,7 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
     badgeIconGradient: {
         width: '100%',
         height: '100%',
-        borderRadius: 50,
+        borderRadius: 25,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -219,14 +224,14 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
     badgeIconInner: {
         width: '100%',
         height: '100%',
-        borderRadius: 50,
+        borderRadius: 25,
         backgroundColor: colors.surface || 'rgba(255, 255, 255, 0.9)',
         justifyContent: 'center',
         alignItems: 'center',
     },
 
     badgeIcon: {
-        fontSize: 48,
+        fontSize: 24,
     },
 
     grayscaleFilter: {
@@ -244,48 +249,58 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
     },
 
     badgeName: {
-        fontSize: 20,
-        fontWeight: '700',
+        fontSize: 14,
+        fontWeight: '600',
         color: colors.onSurface || '#1f2937',
         textAlign: 'center',
-        marginBottom: 8,
+        marginBottom: 4,
+        numberOfLines: 2,
     },
 
     badgeDescription: {
-        fontSize: 15,
+        fontSize: 11,
         color: colors.onSurfaceVariant || '#6b7280',
         textAlign: 'center',
-        lineHeight: 22,
-        marginBottom: 12,
+        lineHeight: 16,
+        marginBottom: 6,
+        numberOfLines: 2,
     },
 
     // Progress Styles
     progressSection: {
         width: '100%',
-        marginVertical: 12,
+        marginVertical: 6,
     },
 
     progressBar: {
         width: '100%',
+        height: 4,
+        backgroundColor: colors.outlineVariant || '#e5e7eb',
+        borderRadius: 2,
+        marginBottom: 4,
+    },
+
+    progressBarTrack: {
+        width: '100%',
         height: 8,
         backgroundColor: colors.outlineVariant || '#e5e7eb',
         borderRadius: 4,
-        marginBottom: 8,
+        overflow: 'hidden',
     },
 
     progressFill: {
         height: '100%',
-        borderRadius: 4,
+        borderRadius: 2,
         backgroundColor: rarityColors?.[0] || colors.onPrimaryContainer || '#10b981',
     },
 
     rarityText: {
-        fontSize: 13,
+        fontSize: 10,
         fontWeight: '600',
         textAlign: 'center',
-        marginBottom: 16,
+        marginBottom: 8,
         textTransform: 'uppercase',
-        letterSpacing: 0.5,
+        letterSpacing: 0.3,
         color: isEarned ? (rarityColors?.[0] || colors.onPrimaryContainer) : colors.onSurfaceVariant,
     },
 
@@ -301,7 +316,7 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
     },
 
     earnedDateText: {
-        fontSize: 12,
+        fontSize: 9,
         color: colors.onSurfaceVariant || '#6b7280',
         textAlign: 'center',
     },
@@ -313,32 +328,32 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
     },
 
     statusEarned: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
         borderWidth: 1,
         backgroundColor: rarityColors?.[0] ? `${rarityColors[0]}20` : `${colors.onPrimaryContainer || '#10b981'}20`,
         borderColor: rarityColors?.[0] || colors.onPrimaryContainer || '#10b981',
     },
 
     statusEarnedText: {
-        fontSize: 13,
+        fontSize: 10,
         fontWeight: '600',
         color: rarityColors?.[0] || colors.onPrimaryContainer || '#10b981',
     },
 
     statusLocked: {
         backgroundColor: colors.categoriesContainer || '#f3f4f6',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderRadius: 20,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
         borderWidth: 1,
         borderColor: colors.outlineVariant || '#d1d5db',
     },
 
     statusLockedText: {
         color: colors.onSurfaceVariant || '#6b7280',
-        fontSize: 13,
+        fontSize: 10,
         fontWeight: '600',
     },
 
@@ -370,4 +385,24 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
         fontSize: 14,
         fontWeight: '600',
     },
+
+    badgeGrid: {
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+    },
+
+    row: {
+        flex: 1,
+        justifyContent: 'space-around',
+        marginBottom: 12,
+        // paddingHorizontal: 4,
+    },
+
+    sectionHeaderContainer: {
+        width: '100%',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        backgroundColor: colors.surface || '#ffffff',
+    },
+
 });
