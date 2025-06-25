@@ -7,7 +7,11 @@ import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../backend/database/Firebase";
 import { useTheme } from "./context/ThemeProvider";
 
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "../backend/database/Firebase"; // make sure db is initialized Firestore instance
+
 export default function RegisterScreen({ navigation }) {
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordConfirmation, setPasswordConfirmation] = useState('');
@@ -31,7 +35,16 @@ export default function RegisterScreen({ navigation }) {
       return;
     }
     createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
+      .then(async (userCredential) => {
+        const user = userCredential.user;
+
+        await setDoc(doc(db, "users", user.uid), {
+          uid: user.uid,
+          email: user.email,
+          username: username,
+          createdAt: new Date(),
+        });
+
         setMessage("Successfully registered!");
         navigation.dispatch(
           CommonActions.reset({
@@ -76,6 +89,16 @@ export default function RegisterScreen({ navigation }) {
             <Text fontSize="2xl" fontWeight="bold" color={colors.primary}>
               Register Now
             </Text>
+            <FormControl>
+                <FormControl.Label>Username</FormControl.Label>
+                <Input
+                  value={username}
+                  onChangeText={setUsername}
+                  placeholder="Choose a username"
+                  bg={colors.surface}
+                  _focus={{ borderColor: colors.primary }}
+                />
+            </FormControl>
             <FormControl>
               <FormControl.Label>Email</FormControl.Label>
               <Input
