@@ -50,6 +50,7 @@ import { generateImage } from "../backend/API/TextToImageService";
 import { fetchTranslation } from "../backend/API/HokkienTranslationToolService";
 import { fetchNumericTones, fetchAudioBlob } from "../backend/API/TextToSpeechService";
 import { uploadAudioFromBlob } from "../backend/database/UploadtoDatabase";
+import { initializeLeitnerBox } from "../backend/database/LeitnerSystemHelpers.js";
 import ExampleSentence from "./components/ExampleSentence";
 import { generateOptions } from "../backend/API/GenerateOptions";
 
@@ -94,19 +95,19 @@ const FlashcardScreen = ({ route, navigation }) => {
   const [option3, setOption3] = useState("");
   const [type, setType] = useState("");
 
-  // For responsive flashcards 
+  // For responsive flashcards
   const direction = useBreakpointValue({
-    base: 'column',  
-    md: 'row',   
+    base: 'column',
+    md: 'row',
   });
   const { height, width } = Dimensions.get("window");
   const cardWidth = width * 0.90;
   //width <= 414 ? width * 0.90 : width * 0.90;
-  //const cardHeight = height * 0.60; 
+  //const cardHeight = height * 0.60;
 
   // Visability
-  const { flashcardVisibilityStates } = useComponentVisibility(); 
-  const shouldShowVStack =  // left side back card 
+  const { flashcardVisibilityStates } = useComponentVisibility();
+  const shouldShowVStack =  // left side back card
   // flashcardVisibilityStates.definition ||
   // flashcardVisibilityStates.englishDefinition ||
   flashcardVisibilityStates.hokkienSentence ||
@@ -156,7 +157,7 @@ const FlashcardScreen = ({ route, navigation }) => {
       [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
     return shuffled;
-  };  
+  };
 
   const getDeckIDByName = async (deckName) => {
     try {
@@ -173,7 +174,7 @@ const FlashcardScreen = ({ route, navigation }) => {
       return "Error getting deck ID.";
     }
   };
-  
+
   useEffect(() => {
     const fetchDeckID = async () => {
       try {
@@ -226,10 +227,10 @@ const FlashcardScreen = ({ route, navigation }) => {
                             secondSentence = sentenceData.sentences?.[1] || "";
                         }
                     }
-                    return { // Must explicitly state word and translation, id gets overwritten despite 
+                    return { // Must explicitly state word and translation, id gets overwritten despite
                       id: flashcardDoc.id, // this
                         ...flashcardData,
-                        word: flashcardData.origin || "", 
+                        word: flashcardData.origin || "",
                         translation: flashcardData.destination || "",
                         contextSentenceId,
                         firstSentence,
@@ -237,7 +238,7 @@ const FlashcardScreen = ({ route, navigation }) => {
                     };
                 })
             );
-            
+
             setFlashcards(flashcardsWithSentences);
             console.log("Updated flashcards:", flashcardsWithSentences);
         } else {
@@ -357,32 +358,32 @@ const FlashcardScreen = ({ route, navigation }) => {
           console.log("Error fetching image:", error);
         }
       };
-      
+
       const uploadBase64Image = async (base64Image, userId, word) => {
         try {
           console.log("Uploading image for user:", userId);
-          
+
           const storage = getStorage(); // Assumes Firebase app is already initialized
           console.log(word);
           const storageRef = ref(storage, `images/${userId}/${word}.jpg`);
-          
+
           // Decode the base64 image
           const base64Response = await fetch(base64Image);
           const imageBlob = await base64Response.blob();
-          
+
           // Upload the image to Firebase Storage
           const snapshot = await uploadBytes(storageRef, imageBlob);
-          
+
           // Get the download URL
           const downloadURL = await getDownloadURL(snapshot.ref);
           console.log("Image uploaded successfully, URL:", downloadURL);
-          
+
           return downloadURL; // Return URL for further usage
         } catch (error) {
           console.error("Error uploading the image:", error);
         }
       };
-      
+
       // Usage example
       const processImage = async (contextSentence, currentUser, word) => {
         const base64Image = await fetchImage(contextSentence);
@@ -419,6 +420,10 @@ const FlashcardScreen = ({ route, navigation }) => {
       const flashcardRef = doc(collection(db, "flashcard"));
       await setDoc(flashcardRef, newFlashcardData);
       const newFlashcardID = flashcardRef.id;
+      console.log("Flashcard created successfully with ID:", newFlashcardID);
+
+      // Initialize Leitner Box
+      await initializeLeitnerBox(currentUser, newFlashcardID);
 
       const flashcardListRef = doc(db, "flashcardList", deckID);
       await updateDoc(flashcardListRef, {
@@ -633,7 +638,7 @@ const FlashcardScreen = ({ route, navigation }) => {
       hokkien = await fetchTranslation(enteredTranslation);
     } catch (error) {
       console.error("Error fetching translation:", error);
-      hokkien = "Translation error. Try again later."; 
+      hokkien = "Translation error. Try again later.";
       setErrorMessage("Error with autofill. Please try again later.");
     }
     setEnteredWord(hokkien);
@@ -828,7 +833,7 @@ const FlashcardScreen = ({ route, navigation }) => {
                 ]}
               >
                 <Box
-                
+
                   width= "auto"
                   maxWidth = {cardWidth}
                   minWidth="300px"
@@ -843,7 +848,7 @@ const FlashcardScreen = ({ route, navigation }) => {
                   shadow={2}
                   p = {4}
                   px={8}
-                  spacing={4} 
+                  spacing={4}
                 >
                   {showTranslation ? (
                     <>
@@ -852,13 +857,13 @@ const FlashcardScreen = ({ route, navigation }) => {
                       </Text>
                       {languages[1] === "Hokkien" && flashcardVisibilityStates.textToSpeech &&(
                         <TextToSpeech
-                          prompt={languages[1] === "Hokkien" ? flashcards[currentCardIndex]?.origin : flashcards[currentCardIndex]?.destination} 
+                          prompt={languages[1] === "Hokkien" ? flashcards[currentCardIndex]?.origin : flashcards[currentCardIndex]?.destination}
                         />
                       )}
 
                       {languages[0] === "Hokkien"  ? (
                       <HStack spacing={4} p = {4} direction={direction}>
-                        {shouldShowVStack && 
+                        {shouldShowVStack &&
                         <VStack alignItems="flex-start" spacing={4} mr={4} width={{ base: '100%', md: '50%' }}>
                           {/* {flashcardVisibilityStates.englishDefinition && <Text fontSize="md" fontWeight="bold" color={colors.onSurface}>
                             Definition
@@ -867,7 +872,7 @@ const FlashcardScreen = ({ route, navigation }) => {
                             {flashcards[currentCardIndex]?.englishDefinition || "1. Lorem ipsum"}
                           </Text>} */}
                         {flashcardVisibilityStates.englishSentence && flashcards[currentCardIndex]?.secondSentence && (
-                          <ExampleSentence 
+                          <ExampleSentence
                             sentence={flashcards[currentCardIndex]?.secondSentence}
                             audio={false}
                           />
@@ -877,7 +882,7 @@ const FlashcardScreen = ({ route, navigation }) => {
                           <Text fontSize="md" fontWeight="bold" color={colors.onSurface}>
                             Context
                           </Text>
-                            {/* <Center> makes spacing overlap*/} 
+                            {/* <Center> makes spacing overlap*/}
                             {flashcardVisibilityStates.image && <Box spacing={2} p={2} borderRadius="md">
                                 <Image source={
                                         flashcards[currentCardIndex]?.downloadURL
@@ -885,8 +890,8 @@ const FlashcardScreen = ({ route, navigation }) => {
                                         : require("../assets/image-not-available.png") // Fallback image
                                       }
                                       alt="Flashcard image"
-                                       // for size per image use: 
-                                       size="2xl"  
+                                       // for size per image use:
+                                       size="2xl"
                                        // for standarized sizes
                                       // style={{
                                       //   width: 220,
@@ -902,7 +907,7 @@ const FlashcardScreen = ({ route, navigation }) => {
                         <HStack spacing={4} p = {4} direction={direction}>
                         {shouldShowVStack && <VStack alignItems="flex-start" spacing={4} mr={4} width={{ base: '100%', md: '50%' }}>
                         {flashcardVisibilityStates.hokkienSentence && flashcards[currentCardIndex]?.firstSentence && (
-                          <ExampleSentence 
+                          <ExampleSentence
                             sentence={flashcards[currentCardIndex]?.firstSentence}
                             audio={flashcardVisibilityStates.textToSpeech}
                           />
@@ -912,7 +917,7 @@ const FlashcardScreen = ({ route, navigation }) => {
                           <Text fontSize="md" fontWeight="bold" color={colors.onSurface}>
                             Context
                           </Text>
-                            {/* <Center> makes spacing overlap*/} 
+                            {/* <Center> makes spacing overlap*/}
                             {flashcardVisibilityStates.image && <Box spacing={2} p={2} borderRadius="md">
                                 <Image source={
                                         flashcards[currentCardIndex]?.downloadURL
@@ -920,8 +925,8 @@ const FlashcardScreen = ({ route, navigation }) => {
                                         : require("../assets/image-not-available.png") // Fallback image
                                       }
                                       alt="Flashcard image"
-                                       // for size per image use: 
-                                       size="2xl"  
+                                       // for size per image use:
+                                       size="2xl"
                                        // for standarized sizes
                                       // style={{
                                       //   width: 220,
@@ -935,7 +940,7 @@ const FlashcardScreen = ({ route, navigation }) => {
                       </HStack>
                       )
                     }
-                      
+
                     </>
                   ) : (
                     <VStack>
@@ -960,7 +965,7 @@ const FlashcardScreen = ({ route, navigation }) => {
                             {flashcards[currentCardIndex]?.definition || "1.「啊啊啊啊」"}
                       </Text>} */}
                       {flashcardVisibilityStates.hokkienSentence && flashcards[currentCardIndex]?.firstSentence && (
-                        <ExampleSentence 
+                        <ExampleSentence
                           sentence={flashcards[currentCardIndex]?.firstSentence}
                           audio={flashcardVisibilityStates.textToSpeech}
                         />
@@ -969,7 +974,7 @@ const FlashcardScreen = ({ route, navigation }) => {
                       ) : (
                         <>
                       {flashcardVisibilityStates.englishSentence && flashcards[currentCardIndex]?.secondSentence && (
-                        <ExampleSentence 
+                        <ExampleSentence
                           sentence={flashcards[currentCardIndex]?.secondSentence}
                           audio={false}
                         />
@@ -983,7 +988,7 @@ const FlashcardScreen = ({ route, navigation }) => {
               </Animated.View>
             </TouchableOpacity>
             <HStack
-              width="300px" 
+              width="300px"
               justifyContent="center"
               alignItems="center"
               mt={2}
