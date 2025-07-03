@@ -11,11 +11,19 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hokkientranslation.hokkientranslation",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
+      "package": "com.hokkientranslation.hokkientranslation",
+      "googleServicesFile": "./android/app/google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -23,6 +31,19 @@
     },
     "web": {
       "favicon": "./assets/close-logo.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0e58da73-63c9-4f14-a312-6296202406e0"
+      }
+    },
+    "plugins": [
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow audio playback"
+        }
+      ]
+    ]
   }
 }

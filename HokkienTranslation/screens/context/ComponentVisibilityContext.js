@@ -8,8 +8,18 @@ export const useComponentVisibility = () =>
 export const ComponentVisibilityProvider = ({ children }) => {
   const [visibilityStates, setVisibilityStates] = useState({
     image: true,
-    definition: true,
-    englishDefinition: true,
+    // definition: true,
+    // englishDefinition: true,
+    hokkienSentence: true,
+    chineseSentence: true,
+    englishSentence: true,
+    textToSpeech: true,
+  });
+
+  const [flashcardVisibilityStates, setFlashcardVisibilityStates] = useState({
+    image: true,
+    // definition: true,
+    // englishDefinition: true,
     hokkienSentence: true,
     chineseSentence: true,
     englishSentence: true,
@@ -23,9 +33,16 @@ export const ComponentVisibilityProvider = ({ children }) => {
     }));
   };
 
+  const toggleFlashcardVisibility = (componentType) => {
+    setFlashcardVisibilityStates((prevStates) => ({
+      ...prevStates,
+      [componentType]: !prevStates[componentType],
+    }));
+  };
+
   return (
     <ComponentVisibilityContext.Provider
-      value={{ visibilityStates, toggleVisibility }}
+      value={{ visibilityStates, toggleVisibility, flashcardVisibilityStates, toggleFlashcardVisibility }}
     >
       {children}
     </ComponentVisibilityContext.Provider>
