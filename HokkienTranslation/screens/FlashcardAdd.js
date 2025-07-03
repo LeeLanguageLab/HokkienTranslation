@@ -34,7 +34,7 @@ async function getFlashcardsforCategory(db, category) {
   const categoryRef = collection(db, "category");
 
   const q = query(categoryRef, where("name", "==", category));
-
+    
   const querySnapshot = await getDocs(q);
   var flashcardList = [];
   var decks = [];

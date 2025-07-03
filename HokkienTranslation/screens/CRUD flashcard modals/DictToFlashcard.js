@@ -133,7 +133,7 @@ export default function DictToFlashcardModal({
         romanization: romanization,
         audioUrl: audioUrl || null,
         contextSentence: contextSentence || " ",
-        downloadUrl: downloadUrl || null,
+        downloadURL: downloadUrl || null,
     };
 
     const flashcardRef = doc(collection(db, "flashcard"));

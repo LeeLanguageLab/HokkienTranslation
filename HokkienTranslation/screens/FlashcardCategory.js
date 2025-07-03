@@ -4,7 +4,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-} from "react-native-web";
+} from "react-native";
 import {
   Box,
   Center,
@@ -22,7 +22,7 @@ import {
 } from "native-base";
 import { useFocusEffect, useIsFocused, useNavigation } from "@react-navigation/native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Pressable } from "react-native-web";
+import { Pressable } from "react-native";
 import { useState } from "react";
 import { useTheme } from "./context/ThemeProvider";
 import app, { db } from "../backend/database/Firebase";
@@ -40,6 +40,13 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import CategoryModal from "./CategoryModal";
 import getCurrentUser from "../backend/database/GetCurrentUser";
+import {
+  weightedScoreByDeck,
+  checkIsNewDeck,
+  ensureUserDataInitialized
+} from "../backend/database/LeitnerSystemHelpers.js";
+import contextSentence from "./components/contextSentence";
+import getContextSentence from "./components/contextSentence";
 // list of categories use api
 
 var index = 0;
@@ -62,6 +69,8 @@ const FlashcardCategory = () => {
 
   // check for auth when getting categories
   async function getCategories(db) {
+
+
     const categoryCol = collection(db, "category");
     const categorySnapshot = await getDocs(categoryCol);
 
@@ -73,11 +82,12 @@ const FlashcardCategory = () => {
     //TODO: REMOVE THIS
     console.log("Print: ", categoryList)
 
+
     return categoryList;
   }
 
   // check for auth when getting flashcardList
-  async function getFlashcardList(db) {
+    async function getFlashcardList(db) {
     const flashcardCol = collection(db, "flashcardList");
     const flashcardSnapshot = await getDocs(flashcardCol);
 
@@ -96,6 +106,7 @@ const FlashcardCategory = () => {
 
     return flashcardList;
   }
+
   const handleBackPress = () => {
     index = 0;
     setDisplay(categories);
@@ -118,11 +129,14 @@ const FlashcardCategory = () => {
 
     return flashcards;
   }
-  
+
   const fetchUser = async () => {
     try {
       const user = await getCurrentUser();
       currentUser = user;
+      if (user) {
+      await ensureUserDataInitialized(user);
+    }
     } catch (error) {
       console.error("Error fetching user: ", error);
     }
@@ -130,26 +144,23 @@ const FlashcardCategory = () => {
 
   useEffect(() => {
     if (isFocused) {
-       
        getCategories(db).then((categoryList) => {
         categories = categoryList;
         console.log("Categories: ", categories);
         setDisplay(categoryList);
-       }).catch((error) => {
+      }).catch((error) => {
         console.error("Error fetching categories: ", error);
-       });
-       getFlashcardList(db)
-      .then((flashcardList) => {
-        alldecks = flashcardList;
-      })
-      .catch((error) => {
-        console.error("Error fetching flashcardList: ", error);
       });
-       index = 0
+      getFlashcardList(db)
+        .then((flashcardList) => {
+          alldecks = flashcardList;
+        })
+        .catch((error) => {
+          console.error("Error fetching flashcardList: ", error);
+        });
+      index = 0
     }
   }, [isFocused]);
-
-  
 
   const handleCategoryPress = async (category, navigation) => {
     // for flashcard lists/decks
@@ -158,7 +169,7 @@ const FlashcardCategory = () => {
     }
 
     if (index == 0) {
-      console.log("Current Category in FlashcardCategory is: ", category); 
+      console.log("Current Category in FlashcardCategory is: ", category);
       var flashcardList = category.flashcardList;
       console.log("List of FlashcardList: ", flashcardList);
       decks = [];
@@ -169,7 +180,7 @@ const FlashcardCategory = () => {
 
         // Await the document snapshot
         const ref = await getDoc(docRef);
-        
+
         deckID = ref.id;
         // console.log(ref.data())
 
@@ -180,8 +191,12 @@ const FlashcardCategory = () => {
         // console.log(temp)
 
         if (temp.createdBy === currentUser || temp.shared) {
-          decks.push({ id: ref.id, ...temp });
+          let unfamiliarityScore = await weightedScoreByDeck(currentUser, deckID);
+          let isNewDeck = await checkIsNewDeck(currentUser, deckID);
+          decks.push({ id: ref.id, ...temp, unfamiliarityScore, isNewDeck });
         }
+        // 🔥 Sort decks by unfamiliarity (higher score first)
+        decks.sort((a, b) => b.unfamiliarityScore - a.unfamiliarityScore);
 
         index = 1;
       }
@@ -195,7 +210,7 @@ const FlashcardCategory = () => {
 
     // update API here
     var flashCardList = category.cardList;
-    console.log("List of Flashcards: ", flashCardList); 
+    console.log("List of Flashcards: ", flashCardList);
 
     for (const card of flashCardList) {
       // console.log(card);
@@ -227,6 +242,9 @@ const FlashcardCategory = () => {
     const [isHovered, setIsHovered] = useState(false);
     const { themes, theme } = useTheme();
     const colors = themes[theme];
+
+    console.log("Category:", category);
+    console.log("Expected Points:", category.expectedPoints);
 
     const handleUpdateDeck = async (category) => {
       var deckName = category.name;
@@ -282,7 +300,7 @@ const FlashcardCategory = () => {
       console.log("FlashcardList: ", flashcardList);
       flashcardList.splice(flashcardList.indexOf(category.name), 1);
 
-      // update caategory
+      // update category
       await updateDoc(categoryRef2, {
         flashcardList: flashcardList,
       });
@@ -300,34 +318,63 @@ const FlashcardCategory = () => {
     };
     return (
       <Pressable
-        // style={[styles.categoryBox, isPressed && styles.categoryBoxPressed]}
+        style={[
+          styles.categoryBox,
+          isPressed && styles.categoryBoxPressed,
+          { backgroundColor: colors.categoriesButton }
+        ]}
         onPressIn={() => setIsPressed(true)}
         onPressOut={() => setIsPressed(false)}
         onPress={() => handleCategoryPress(category, navigation)}
-        style={[
-          isPressed
-            ? [styles.categoryBox, styles.categoryBoxPressed]
-            : styles.categoryBox,
-          { backgroundColor: colors.categoriesButton },
-        ]}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
+        {/* Expected Points Display */}
+        {/*console.log("Category Unfamiliarity Score: ", category.unfamiliarityScore);*/}
+        {category.unfamiliarityScore &&
+            (<Text
+            style={{
+              position: "absolute",
+              bottom: 5,
+              right: 10,
+              fontSize: 14,
+              fontWeight: "bold",
+              color: colors.onSurfaceVariant,
+            }}
+          >
+            Expected {category.unfamiliarityScore} pts
+          </Text>)
+        }
+        {category.unfamiliarityScore && category.isNewDeck && (
+          <Text
+            style={{
+              position: "absolute",
+              top: 5,
+              left: 10,
+              fontSize: 14,
+              fontWeight: "bold",
+              color: "red",
+            }}
+          >
+            New!
+          </Text>)
+        }
+
         <VStack space={1} alignItems="center">
           <Ionicons name={category.icon} size={30} color={colors.onSurface} />
           <Text style={styles.categoryText} color={colors.onSurface}>{category.name}</Text>
         </VStack>
         {index === 1 && (
           <HStack style={styles.actionButtons}>
-            {category.createdBy === currentUser &&  (
-            <>
-              <TouchableOpacity onPress={() => handleUpdateDeck(category)}>
-                <Icon as={MaterialIcons} name="edit" size="sm" color={colors.onSurface} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={() => handleDeleteDeck(category)}>
-                <Icon as={MaterialIcons} name="delete" size="sm" color={colors.onSurface} />
-              </TouchableOpacity>
-            </>
+            {category.createdBy === currentUser && (
+              <>
+                <TouchableOpacity onPress={() => handleUpdateDeck(category)}>
+                  <Icon as={MaterialIcons} name="edit" size="sm" color={colors.onSurface} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteDeck(category)}>
+                  <Icon as={MaterialIcons} name="delete" size="sm" color={colors.onSurface} />
+                </TouchableOpacity>
+              </>
             )}
           </HStack>
         )}
@@ -335,7 +382,7 @@ const FlashcardCategory = () => {
     );
   };
 
-  const AddBox = ({}) => {
+  const AddBox = ({ }) => {
     const [isPressed, setIsPressed] = useState(false);
 
     const addFlashcard = () => {
@@ -348,7 +395,7 @@ const FlashcardCategory = () => {
       <Pressable
         style={[
           styles.addBox,
-          {borderColor: colors.onSurface},
+          { borderColor: colors.onSurface },
           isPressed && styles.categoryBoxPressed,
           { backgroundColor: colors.categoriesBox },
         ]}
@@ -393,8 +440,8 @@ const FlashcardCategory = () => {
 
           {/* Emphasize categories for study */}
           <VStack style={styles.grid}>
-          {display
-            .filter(category => 
+            {display
+            .filter(category =>
               ["Daily Conversations", "Dining and Food", "Family and Relationships"].includes(category.name)
             )
             .map((category, index) => (
@@ -405,22 +452,22 @@ const FlashcardCategory = () => {
               />
           ))}
 
-          {index === 0 &&  
+          {index === 0 &&
           <Divider my={4} bg={colors.surface} />
           }
 
-          {/* Remaining Categories */}
-          {display
-            .filter(category => 
-              !["Daily Conversations", "Dining and Food", "Family and Relationships"].includes(category.name)
-            )
-            .map((category, index) => (
-              <CategoryBox 
-              key={index} 
-              category={category} 
-              navigation={navigation} />
-          ))}
-          {index === 1 && <AddBox />}
+            {/* Remaining Categories */}
+            {display
+              .filter(category =>
+                !["Daily Conversations", "Dining and Food", "Family and Relationships"].includes(category.name)
+              )
+              .map((category, index) => (
+                <CategoryBox
+                  key={index}
+                  category={category}
+                  navigation={navigation} />
+              ))}
+            {index === 1 && <AddBox />}
           </VStack>
 
           {/* <VStack style={styles.grid}>
@@ -498,6 +545,7 @@ const styles = StyleSheet.create({
   addBox: {
     minWidth: "30%",
     width: "30%",
+    height: 120,
     borderStyle: "dashed",
     marginHorizontal: "1.6%",
     alignItems: "center",
@@ -517,7 +565,7 @@ const styles = StyleSheet.create({
   container: {
     width: "95%",
     minWidth: 300,
-    alignItems: "center",  
+    alignItems: "center",
     backgroundColor: "white",
     borderRadius: 10,
     padding: 20,
@@ -532,12 +580,12 @@ const styles = StyleSheet.create({
   grid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "flex-start", 
-    alignSelf: "center",  
-    width: "100%", 
+    justifyContent: "flex-start",
+    alignSelf: "center",
+    width: "100%",
   },
   categoryBox: {
-    width: "30%",  
+    width: "30%",
     height: 120,
     marginHorizontal: "1.6%",
     alignItems: "center",
