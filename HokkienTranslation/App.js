@@ -88,7 +88,7 @@ const FlashcardStack = () => {
                 headerRight: () => <FeedbackButton/>,
             }}
         >
-            <Stack.Screen name="Category" component={LearningScreen}/>
+            <Stack.Screen name="Category" component={FlashcardCategory}/>
             <Stack.Screen name="Flashcard" component={FlashcardScreen}/>
             <Stack.Screen name="Quiz" component={QuizScreen}/>
             <Stack.Screen name="FlashcardAdd" component={FlashcardAdd} options={{title: "Add New Flashcard Deck"}}/>

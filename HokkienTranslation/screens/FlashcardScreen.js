@@ -100,6 +100,8 @@ const FlashcardScreen = ({route, navigation}) => {
         flashcardVisibilityStates.hokkienSentence ||
         flashcardVisibilityStates.englishSentence;
 
+    const [isLearningScreen, setIsLearningScreen] = useState(null);
+
     const translateText = async (text, language) => {
         try {
             const response = await callOpenAIChat(
