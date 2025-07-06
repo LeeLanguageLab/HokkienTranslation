@@ -152,44 +152,71 @@ const FlashcardScreen = ({ route, navigation }) => {
     fetchDeckID();
   }, [flashcardListName]);
 
-  const fetchFlashcardsByDeck = async (deckName) => {
+  const fetchFlashcardsByDeck = async (deckID) => {
     try {
-      const deckCollection = collection(db, "flashcardList");
-      const deckQuery = query(deckCollection, where("name", "==", deckName));
-      const querySnapshot = await getDocs(deckQuery);
-
-      if (!querySnapshot.empty) {
-        const deckDoc = querySnapshot.docs[0];
-        const flashcardIDs = deckDoc.data().cardList || [];
-
-        const flashcardCollection = collection(db, "flashcard");
-        const flashcardQuery = query(
-          flashcardCollection,
-          where("__name__", "in", flashcardIDs)
-        );
-        const flashcardSnapshot = await getDocs(flashcardQuery);
-
-        const flashcardsWithIDs = flashcardSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        // console.log("Flashcards with IDs:", flashcardsWithIDs);
-        setFlashcards(flashcardsWithIDs);
-      } else {
-        console.log("Deck not found.");
+      const flashcardListRef = doc(db, "flashcardList", deckID);
+      const flashcardListDoc = await getDoc(flashcardListRef);
+  
+      if (!flashcardListDoc.exists()) {
+        console.error(`Deck not found with ID: ${deckID}`);
+        setErrorMessage("Deck not found. Please try again later.");
+        return;
       }
+  
+      const flashcardIDs = flashcardListDoc.data().cardList || [];
+  
+      if (flashcardIDs.length === 0) {
+        console.log(`Deck ${deckID} has no flashcards.`);
+        setFlashcards([]);
+        return;
+      }
+  
+      // Fetch flashcards by ID
+      const flashcardsData = await Promise.all(
+        flashcardIDs.map(async (id) => {
+          const cardRef = doc(db, "flashcard", id);
+          const cardDoc = await getDoc(cardRef);
+          return cardDoc.exists() ? { id: cardDoc.id, ...cardDoc.data() } : null;
+        })
+      );
+  
+      // Process word/translation fields based on selected languages
+      const processedFlashcards = await Promise.all(
+        flashcardsData.filter(Boolean).map(async (flashcard) => {
+          let word = flashcard.destination;
+          let translation = flashcard.origin;
+  
+          if (languages[0] === "Hokkien") word = flashcard.origin;
+          if (languages[1] === "English") translation = flashcard.destination;
+  
+          if (languages[0] !== "English" && languages[0] !== "Hokkien") {
+            word = await translateText(flashcard.destination, languages[0]);
+          }
+          if (languages[1] !== "English" && languages[1] !== "Hokkien") {
+            translation = await translateText(flashcard.destination, languages[1]);
+          }
+  
+          return {
+            ...flashcard,
+            word,
+            translation,
+          };
+        })
+      );
+  
+      setFlashcards(processedFlashcards);
     } catch (error) {
-      console.error("Error fetching flashcards with deck name: ", deckName, "; Error message: ", error.message);
-      setErrorMessage("Error fetching flashcards. Please try again later");
+      console.error(`Error fetching flashcards for deck ${deckID}:`, error);
+      setErrorMessage("Error fetching flashcards. Please try again later.");
     }
-  };
+  };  
 
   useEffect(() => {
-    if (flashcardListName) {
-      fetchFlashcardsByDeck(flashcardListName);
+    if (deckID) {
+      fetchFlashcardsByDeck(deckID);
     }
-  }, [flashcardListName]);
+  }, [deckID]);
+
 
   useEffect(() => {
     if (flashcards.length > 0) {
@@ -521,76 +548,6 @@ const FlashcardScreen = ({ route, navigation }) => {
       setErrorMessage("Error with autofill. Please try again later.");
     }
   };
-
-  useEffect(() => {
-    const fetchAndGenerateFlashcards = async () => {
-      try {
-        const deckCollection = collection(db, "flashcardList");
-        const deckQuery = query(
-          deckCollection,
-          where("name", "==", flashcardListName)
-        );
-        const querySnapshot = await getDocs(deckQuery);
-
-        if (!querySnapshot.empty) {
-          const deckDoc = querySnapshot.docs[0];
-          const flashcardIDs = deckDoc.data().cardList || [];
-
-          // fetch by ID
-          const flashcardCollection = collection(db, "flashcard");
-          const flashcardQuery = query(
-            flashcardCollection,
-            where("__name__", "in", flashcardIDs)
-          );
-          const flashcardSnapshot = await getDocs(flashcardQuery);
-
-          let fetchedFlashcards = flashcardSnapshot.docs.map((doc) => ({
-            //add ID to flashcards
-            id: doc.id,
-            ...doc.data(),
-          }));
-
-          const processedFlashcards = await Promise.all(
-            fetchedFlashcards.map(async (flashcard) => {
-              let word = flashcard.destination;
-              let translation = flashcard.origin;
-
-              if (languages[0] === "Hokkien") {
-                word = flashcard.origin;
-              }
-              if (languages[1] === "English") {
-                translation = flashcard.destination;
-              }
-
-              if (languages[0] !== "English" && languages[0] !== "Hokkien") {
-                word = await translateText(flashcard.destination, languages[0]);
-              }
-              if (languages[1] !== "English" && languages[1] !== "Hokkien") {
-                translation = await translateText(flashcard.destination, languages[1]);
-              }
-
-              return {
-                ...flashcard,
-                word,
-                translation,
-              };
-            })
-          );
-
-          setFlashcards(processedFlashcards);
-        } else {
-          console.log("Deck not found.");
-        }
-      } catch (error) {
-        console.error("Error fetching or generating flashcards:", error);
-        setErrorMessage("Error with fetching or generating flashcards. Please try again later.");
-      }
-    };
-
-    if (flashcardListName) {
-      fetchAndGenerateFlashcards();
-    }
-  }, [flashcardListName, languages]);
 
   useEffect(() => {
     //prefill fields
