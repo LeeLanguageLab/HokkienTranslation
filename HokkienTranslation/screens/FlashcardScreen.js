@@ -212,12 +212,13 @@ const FlashcardScreen = ({ route, navigation }) => {
   };  
 
   useEffect(() => {
-    if (deckID) {
+    if (route.params.cardList && route.params.cardList.length > 0) {
+      setFlashcards(route.params.cardList);
+    } else if (deckID) {
       fetchFlashcardsByDeck(deckID);
     }
-  }, [deckID]);
-
-
+  }, [deckID, route.params.cardList]);
+  
   useEffect(() => {
     if (flashcards.length > 0) {
       console.log("Current flashcard ID: ", flashcards[currentCardIndex].id);
