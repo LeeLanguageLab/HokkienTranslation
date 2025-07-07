@@ -92,6 +92,7 @@ const FlashcardStack = () => {
             <Stack.Screen name="Flashcard" component={FlashcardScreen}/>
             <Stack.Screen name="Quiz" component={QuizScreen}/>
             <Stack.Screen name="FlashcardAdd" component={FlashcardAdd} options={{title: "Add New Flashcard Deck"}}/>
+            <Stack.Screen name="FlashcardStudy" component={LearningScreen} options={{title: "Study Flashcards"}}/>
         </Stack.Navigator>
     );
 };

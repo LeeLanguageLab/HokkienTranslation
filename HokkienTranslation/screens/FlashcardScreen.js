@@ -39,6 +39,7 @@ import {generateOptions} from "../backend/API/GenerateOptions";
 import {recordDeckCompletion} from "../backend/badges/EventTracker";
 import {useToast} from "react-native-toast-notifications";
 import getCurrentUserActual from "../backend/database/GetCurrentUserActual";
+import {StudyButton} from "./components/StudyButton";
 
 const FlashcardScreen = ({route, navigation}) => {
     // Theme and Language
@@ -1091,7 +1092,12 @@ const FlashcardScreen = ({route, navigation}) => {
                         word={flashcards[currentCardIndex].word}
                         translation={flashcards[currentCardIndex].translation}
                     />
+                    <StudyButton
+                        colors={colors}
+                        flashcardListName={flashcardListName}
+                    />
                 </Center>
+
             </Box>
         </ScrollView>
     );
