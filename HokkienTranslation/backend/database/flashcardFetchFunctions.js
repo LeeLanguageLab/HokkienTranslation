@@ -46,8 +46,8 @@ export async function getFlashcardList(db, currentUser) {
     return filteredList;
 }
 
-export async function getSchedulingCards(currentUser) {
-    const cardsRef = collection(db, "schedulerFlashcardStorage", currentUser, "flashcards");
+export async function getSchedulingCards(currentUser, flashcardListName) {
+    const cardsRef = collection(db, "schedulerFlashcardStorage", currentUser, flashcardListName);
     const cardsSnapshot = await getDocs(cardsRef);
 
     if (cardsSnapshot.empty) {

@@ -76,7 +76,7 @@ const LearningScreen = ({route}) => {
 
     const fetchSchedulingCards = async () => {
         try {
-            const schedulingCardList = await getSchedulingCards(currentUser);
+            const schedulingCardList = await getSchedulingCards(currentUser, flashcardListName);
             console.log(schedulingCardList);
             return schedulingCardList;
 
