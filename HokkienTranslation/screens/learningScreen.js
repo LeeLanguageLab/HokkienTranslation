@@ -7,7 +7,7 @@ import {
     putSchedulingCards,
     putFSRSParameters,
     updateOneSchedulingCard,
-    saveReviewInstance
+    saveReviewInstance, getFlashcardListFromFlashcardListName
 } from '../backend/database/flashcardFetchFunctions';
 import {db} from "../backend/database/Firebase";
 import {doc, getDoc} from "firebase/firestore";
@@ -43,7 +43,7 @@ import {fetchRomanizer} from "../backend/API/HokkienHanziRomanizerService";
 
 var currentUser = "";
 
-const LearningScreen = (route, navigation) => {
+const LearningScreen = ({route}) => {
 
     const {theme, themes} = useTheme();
     const colors = themes[theme];
@@ -70,10 +70,13 @@ const LearningScreen = (route, navigation) => {
     const [currentList, setCurrentList] = useState("New");
     const [showAnswer, setShowAnswer] = useState(false);
 
+    const flashcardListName = route.params.flashcardListName;
+
+
 
     const fetchSchedulingCards = async () => {
         try {
-            const schedulingCardList = await getSchedulingCards(db, currentUser);
+            const schedulingCardList = await getSchedulingCards(currentUser);
             console.log(schedulingCardList);
             return schedulingCardList;
 
@@ -85,10 +88,16 @@ const LearningScreen = (route, navigation) => {
     const fetchFlashcards = async () => {
         try {
             // (Tanay) this gets data for the current user
-            const flashcardsList = await getFlashcardList(db, currentUser); // replace with get all scheduled flashcards in db.
-            const flashcardIdsX = flashcardsList.map((flashcard) => flashcard.cardList);
-            const flashcardIds = [].concat.apply([], flashcardIdsX);
-            console.log(flashcardIds);
+            // const flashcardsList = await getFlashcardList(db, currentUser); // replace with get all scheduled flashcards in db.
+
+            const flashcardsList = await getFlashcardListFromFlashcardListName(flashcardListName);
+            // const flashcardIdsX = flashcardsList.map((flashcard) => flashcard.cardList);
+            // const flashcardIds = [].concat.apply([], flashcardIdsX);
+            console.log("List of flashcards:", flashcardsList)
+            const flashcardIds = flashcardsList[0].cardList;
+            console.warn("FlashcardIds", flashcardIds);
+
+
             const flashcardList = (await Promise.all(
                 flashcardIds.map(async (flashcardId) => {
                     const flashcardDocRef = doc(db, "flashcard", flashcardId);
@@ -103,19 +112,19 @@ const LearningScreen = (route, navigation) => {
                         : null; // Skip non-existent flashcards
                 })
             )).filter(Boolean); // Remove null values
-            console.log(flashcardList)
+            console.warn("Flashcard List:", flashcardList)
             return flashcardList;
 
 
         } catch (error) {
             console.error("Error fetching flashcards: ", error);
         }
-    };
+    };// Modifications on this funcation have been complete
 
 
     const getScheduledCards = (cardList) => {
         var dueCards = cardList.filter(card => card.due <= new Date());
-        console.log(dueCards);
+        // console.log(dueCards);
 
         // split dueCards by completely new cards and review cards. take new cards out of due cards
         const newCards = dueCards.filter(card => card.reps === 0);
@@ -130,10 +139,10 @@ const LearningScreen = (route, navigation) => {
     };
 
     const flashcardMapping = (findFlashcard, allFlashcards) => {
-        console.log("Current Flashcard", findFlashcard)
-        console.log(allFlashcards)
+        // console.log("Current Flashcard", findFlashcard)
+        // console.log(allFlashcards)
         const newF = allFlashcards.find(flashcard => flashcard.id === findFlashcard.flashcardId);
-        console.log("New Flashcard", newF)
+        // console.log("New Flashcard", newF)
         if (newF) {
             return newF
         } else {
@@ -162,7 +171,7 @@ const LearningScreen = (route, navigation) => {
 //   };
 
     useEffect(() => {
-        console.log("Current Card Index: ", curCard);
+        // console.log("Current Card Index: ", curCard);
 
 
     }, [curCard]);
@@ -170,9 +179,9 @@ const LearningScreen = (route, navigation) => {
         try {
             const user = await getCurrentUser();
             currentUser = user;
-            console.log("Current User: ", currentUser);
+            // console.log("Current User: ", currentUser);
         } catch (error) {
-            console.error("Error fetching user: ", error);
+            // console.error("Error fetching user: ", error);
         }
     };
 
@@ -188,7 +197,7 @@ const LearningScreen = (route, navigation) => {
 
 
         var futurecards = FSRSscheduler.repeat(currentCard, new Date());
-        console.log("Error check")
+        // console.log("Error check")
 
 
         var updatedcard = futurecards[number + 1].card
@@ -201,13 +210,13 @@ const LearningScreen = (route, navigation) => {
         setSchedulingCardList(updatedSchedulingCardList);
 
         // update the card in the database
-        console.log(currentUser);
-        updateOneSchedulingCard(db, currentUser, updatedcard);
+        // console.log(currentUser);
+        updateOneSchedulingCard(db, currentUser, updatedcard, flashcardListName);
 
 
         var cardlog = futurecards[number + 1].log
-        console.log("Card Log:", cardlog);
-        saveReviewInstance(db, currentUser, cardlog);
+        // console.log("Card Log:", cardlog);
+        saveReviewInstance(db, currentUser, cardlog, flashcardListName);
 
         var newCardsX = newCards;
         var reviewCardsX = reviewCards;
@@ -232,7 +241,7 @@ const LearningScreen = (route, navigation) => {
 
         } else { // this is for hard
             // check the timeDiff. If less than 1 day, put into againCards, else put into reviewCards
-            console.log("Time Diff:", timeDiff);
+            // console.log("Time Diff:", timeDiff);
             if (timeDiff < 86400000) {
                 againCardsX = [...againCardsX, updatedcard];
             } else {
@@ -242,7 +251,7 @@ const LearningScreen = (route, navigation) => {
         // get all Duecards in again
 
         var dueAgainCards = againCardsX.filter(card => card.due <= new Date());
-        console.log("Due again Cards:", dueAgainCards);
+        // console.log("Due again Cards:", dueAgainCards);
 
         var dueReviewCards = reviewCardsX.filter(card => card.due <= new Date());
 
@@ -285,9 +294,9 @@ const LearningScreen = (route, navigation) => {
 
         }
 
-        console.log("New:", newCardsX);
-        console.log("Review:", reviewCardsX);
-        console.log("Again:", againCardsX);
+        // console.log("New:", newCardsX);
+        // console.log("Review:", reviewCardsX);
+        // console.log("Again:", againCardsX);
 
         setNewCards(newCardsX);
         setReviewCards(reviewCardsX);
@@ -316,7 +325,7 @@ const LearningScreen = (route, navigation) => {
                     setSchedulingCardList(schedulingCardList);
                     var FSRSParameters = generatorParameters(fsrsScheduler);
                     console.log(schedulingCardList);
-                    await putSchedulingCards(db, currentUser, schedulingCardList);
+                    await putSchedulingCards(db, currentUser, schedulingCardList, flashcardListName);
                     await putFSRSParameters(db, currentUser, FSRSParameters);
 
                     const [newCards, againCards, reviewCards] = getScheduledCards(schedulingCardList);
@@ -335,7 +344,7 @@ const LearningScreen = (route, navigation) => {
                 } else {
                     setSchedulingCardList(schedulingCards.cards);
                     const schedulingParameters = await getFSRSParameters(db, currentUser);
-                    console.log(schedulingParameters);
+                    // console.log(schedulingParameters);
 
 
                     const fsrsScheduler = new FSRS(schedulingParameters);

@@ -2,9 +2,11 @@ import {Button, HStack, Text} from "native-base";
 import {Ionicons} from "@expo/vector-icons";
 import {useState} from "react";
 import {StyleSheet} from "react-native";
+import {useNavigation} from "@react-navigation/native";
 
 
-export const StudyButton = ({colors}) => {
+export const StudyButton = ({colors, flashcardListName}) => {
+    const navigation = useNavigation();
 
     const [isPressedStudyButton, setIsPressedStudyButton] = useState(false);
 
@@ -41,7 +43,7 @@ export const StudyButton = ({colors}) => {
                 marginLeft="auto"
                 onPressIn={() => setIsPressedStudyButton(true)}
                 onPressOut={() => setIsPressedStudyButton(false)}
-                onPress={() => navigation.navigate("FlashcardScreen", {flashcardListName})}
+                onPress={() => navigation.navigate("FlashcardStudy", {flashcardListName})}
                 background={colors.primaryContainer}
                 _text={{color: colors.onSurface}}
                 borderRadius="21"
