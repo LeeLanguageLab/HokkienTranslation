@@ -5,6 +5,7 @@ import {
     TouchableOpacity,
     TextInput,
     Text,
+    useWindowDimensions,
 } from "react-native";
 import {
     Box,
@@ -63,16 +64,15 @@ const FlashcardCategory = () => {
     const navigation = useNavigation();
     const {themes, theme} = useTheme();
     const colors = themes[theme];
-
+    const {width, height} = useWindowDimensions();
     const [display, setDisplay] = useState([]);
     const isFocused = useIsFocused();
 
     // check for auth when getting categories
     async function getCategories(db) {
-
-
         const categoryCol = collection(db, "category");
         const categorySnapshot = await getDocs(categoryCol);
+
 
         const categoryList = categorySnapshot.docs.map((doc) => ({
             id: doc.id,
@@ -244,254 +244,263 @@ const FlashcardCategory = () => {
         });
     };
 
-    const CategoryBox = ({category, navigation}) => {
-        const [isPressed, setIsPressed] = useState(false);
-        const [isHovered, setIsHovered] = useState(false);
-        const {themes, theme} = useTheme();
-        const colors = themes[theme];
+    const styleChanges = () => {
+        if (width < 768) {
+            styles.categoryBox = styles.categoryBoxMobile;
+            styles.categoryText = styles.categoryTextMobile;
 
-        console.log("Category:", category);
-        console.log("Expected Points:", category.expectedPoints);
+        }
 
-        const handleUpdateDeck = async (category) => {
-            var deckName = category.name;
-            var selectedFlashcards = category.cardList;
-            var shared = category.shared;
+        const CategoryBox = ({category, navigation}) => {
+            const [isPressed, setIsPressed] = useState(false);
+            const [isHovered, setIsHovered] = useState(false);
+            const {themes, theme} = useTheme();
+            const colors = themes[theme];
 
-            var update = true;
-            navigation.navigate("FlashcardAdd", {
-                deckName,
-                selectedFlashcards,
-                shared,
-                curCategory,
-                currentUser,
-                update,
-                categoryId,
-            });
-        };
-        const handleDeleteDeck = async (category) => {
-            const categoryRef = doc(db, "flashcardList", category.name);
-            console.log("CategoryRef: ", categoryRef);
+            console.log("Category:", category);
+            console.log("Expected Points:", category.expectedPoints);
 
-            // get category data
-            const categoryDoc = await getDoc(categoryRef);
-            const categoryData = categoryDoc.data();
-            const categoryId = categoryData.categoryId;
-            console.log("CategoryID: ", categoryId);
+            const handleUpdateDeck = async (category) => {
+                var deckName = category.name;
+                var selectedFlashcards = category.cardList;
+                var shared = category.shared;
 
-            // Delete the flashcardList document
-            await deleteDoc(categoryRef);
-            console.log("Deleted category: ", category.name);
-
-            // Query to find the corresponding document in flashcardQuiz collection
-            const quizQuery = query(
-                collection(db, "flashcardQuiz"),
-                where("flashcardListId", "==", category.name)
-            );
-            const quizQuerySnapshot = await getDocs(quizQuery);
-
-            // Delete the flashcardQuiz document(s)
-            quizQuerySnapshot.forEach(async (quizDoc) => {
-                await deleteDoc(quizDoc.ref);
-                console.log(
-                    "Deleted flashcardQuiz document with flashcardListId: ",
-                    category.name
-                );
-            });
-
-            // remove deck from category
-            const categoryRef2 = doc(db, "category", categoryId);
-            const categoryDoc2 = await getDoc(categoryRef2);
-            const categoryData2 = categoryDoc2.data();
-            var flashcardList = categoryData2.flashcardList;
-            console.log("FlashcardList: ", flashcardList);
-            flashcardList.splice(flashcardList.indexOf(category.name), 1);
-
-            // update category
-            await updateDoc(categoryRef2, {
-                flashcardList: flashcardList,
-            });
-
-            getCategories(db)
-                .then((categoryList) => {
-                    categories = categoryList;
-                    console.log("Categories: ", categories);
-                    setDisplay(categoryList);
-                })
-                .catch((error) => {
-                    console.error("Error fetching categories: ", error);
+                var update = true;
+                navigation.navigate("FlashcardAdd", {
+                    deckName,
+                    selectedFlashcards,
+                    shared,
+                    curCategory,
+                    currentUser,
+                    update,
+                    categoryId,
                 });
-            index = 0;
-        };
-        return (
-            <Pressable
-                style={[
-                    styles.categoryBoxMobile,
-                    isPressed && styles.categoryBoxPressed,
-                    {backgroundColor: colors.categoriesButton}
-                ]}
-                onPressIn={() => setIsPressed(true)}
-                onPressOut={() => setIsPressed(false)}
-                onPress={() => handleCategoryPress(category, navigation)}
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-            >
-                {/* Expected Points Display */}
-                {/*console.log("Category Unfamiliarity Score: ", category.unfamiliarityScore);*/}
-                {category.unfamiliarityScore &&
-                    (<Text
-                        style={{
-                            position: "absolute",
-                            bottom: 5,
-                            right: 10,
-                            fontSize: 14,
-                            fontWeight: "bold",
-                            color: colors.onSurfaceVariant,
-                        }}
-                    >
-                        Expected {category.unfamiliarityScore} pts
-                    </Text>)
-                }
-                {category.unfamiliarityScore && category.isNewDeck && (
-                    <Text
-                        style={{
-                            position: "absolute",
-                            top: 5,
-                            left: 10,
-                            fontSize: 14,
-                            fontWeight: "bold",
-                            color: "red",
-                        }}
-                    >
-                        New!
-                    </Text>)
-                }
+            };
+            const handleDeleteDeck = async (category) => {
+                const categoryRef = doc(db, "flashcardList", category.name);
+                console.log("CategoryRef: ", categoryRef);
 
-                <VStack space={0} alignItems="center" justifyContent="center" marginTop={5}>
-                    <Ionicons name={category.icon} size={30} color={colors.onSurface}/>
-                    <View style={styles.textContainer}>
-                        <Text
-                            style={styles.categoryTextMobile}
-                            color={colors.onSurface}
-                            numberOfLines={2}
-                            ellipsizeMode="tail"
-                            // adjustsFontSizeToFit={true}
-                            // minimumFontScale={0.8}
+                // get category data
+                const categoryDoc = await getDoc(categoryRef);
+                const categoryData = categoryDoc.data();
+                const categoryId = categoryData.categoryId;
+                console.log("CategoryID: ", categoryId);
+
+                // Delete the flashcardList document
+                await deleteDoc(categoryRef);
+                console.log("Deleted category: ", category.name);
+
+                // Query to find the corresponding document in flashcardQuiz collection
+                const quizQuery = query(
+                    collection(db, "flashcardQuiz"),
+                    where("flashcardListId", "==", category.name)
+                );
+                const quizQuerySnapshot = await getDocs(quizQuery);
+
+                // Delete the flashcardQuiz document(s)
+                quizQuerySnapshot.forEach(async (quizDoc) => {
+                    await deleteDoc(quizDoc.ref);
+                    console.log(
+                        "Deleted flashcardQuiz document with flashcardListId: ",
+                        category.name
+                    );
+                });
+
+                // remove deck from category
+                const categoryRef2 = doc(db, "category", categoryId);
+                const categoryDoc2 = await getDoc(categoryRef2);
+                const categoryData2 = categoryDoc2.data();
+                var flashcardList = categoryData2.flashcardList;
+                console.log("FlashcardList: ", flashcardList);
+                flashcardList.splice(flashcardList.indexOf(category.name), 1);
+
+                // update category
+                await updateDoc(categoryRef2, {
+                    flashcardList: flashcardList,
+                });
+
+                getCategories(db)
+                    .then((categoryList) => {
+                        categories = categoryList;
+                        console.log("Categories: ", categories);
+                        setDisplay(categoryList);
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching categories: ", error);
+                    });
+                index = 0;
+            };
+
+            styleChanges()
+            return (
+                <Pressable
+                    style={[
+                        styles.categoryBox,
+                        isPressed && styles.categoryBoxPressed,
+                        {backgroundColor: colors.categoriesButton}
+                    ]}
+                    onPressIn={() => setIsPressed(true)}
+                    onPressOut={() => setIsPressed(false)}
+                    onPress={() => handleCategoryPress(category, navigation)}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                >
+                    {/* Expected Points Display */}
+                    {/*console.log("Category Unfamiliarity Score: ", category.unfamiliarityScore);*/}
+                    {category.unfamiliarityScore &&
+                        (<Text
+                            style={{
+                                position: "absolute",
+                                bottom: 5,
+                                right: 10,
+                                fontSize: 14,
+                                fontWeight: "bold",
+                                color: colors.onSurfaceVariant,
+                            }}
                         >
-                            {category.name}
-                        </Text>
-                    </View>
-                </VStack>
-                {
-                    index === 1 && (
-                        <HStack style={styles.actionButtons}>
-                            {category.createdBy === currentUser && (
-                                <>
-                                    <TouchableOpacity onPress={() => handleUpdateDeck(category)}>
-                                        <Icon as={MaterialIcons} name="edit" size="sm" color={colors.onSurface}/>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={() => handleDeleteDeck(category)}>
-                                        <Icon as={MaterialIcons} name="delete" size="sm" color={colors.onSurface}/>
-                                    </TouchableOpacity>
-                                </>
+                            Expected {category.unfamiliarityScore} pts
+                        </Text>)
+                    }
+                    {category.unfamiliarityScore && category.isNewDeck && (
+                        <Text
+                            style={{
+                                position: "absolute",
+                                top: 5,
+                                left: 10,
+                                fontSize: 14,
+                                fontWeight: "bold",
+                                color: "red",
+                            }}
+                        >
+                            New!
+                        </Text>)
+                    }
+
+                    <VStack space={0} alignItems="center" justifyContent="center" marginTop={5}>
+                        <Ionicons name={category.icon} size={30} color={colors.onSurface}/>
+                        <View style={styles.textContainer}>
+                            <Text
+                                style={styles.categoryText}
+                                color={colors.onSurface}
+                                numberOfLines={2}
+                                ellipsizeMode="tail"
+                                // adjustsFontSizeToFit={true}
+                                // minimumFontScale={0.8}
+                            >
+                                {category.name}
+                            </Text>
+                        </View>
+                    </VStack>
+                    {
+                        index === 1 && (
+                            <HStack style={styles.actionButtons}>
+                                {category.createdBy === currentUser && (
+                                    <>
+                                        <TouchableOpacity onPress={() => handleUpdateDeck(category)}>
+                                            <Icon as={MaterialIcons} name="edit" size="sm" color={colors.onSurface}/>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={() => handleDeleteDeck(category)}>
+                                            <Icon as={MaterialIcons} name="delete" size="sm" color={colors.onSurface}/>
+                                        </TouchableOpacity>
+                                    </>
+                                )}
+                            </HStack>
+                        )
+                    }
+                </Pressable>
+            )
+                ;
+        };
+
+        const AddBox = ({}) => {
+            const [isPressed, setIsPressed] = useState(false);
+
+            const addFlashcard = () => {
+                console.log("Current curCategory: ", curCategory);
+                console.log("Category ID: ", categoryId)
+                navigation.navigate("FlashcardAdd", {curCategory, currentUser, categoryId});
+            };
+
+            return (
+                <Pressable
+                    style={[
+                        styles.addBox,
+                        {borderColor: colors.onSurface},
+                        isPressed && styles.categoryBoxPressed,
+                        {backgroundColor: colors.categoriesBox},
+                    ]}
+                    onPressIn={() => setIsPressed(true)}
+                    onPressOut={() => setIsPressed(false)}
+                    onPress={() => addFlashcard()}
+                >
+                    <Ionicons name="add" size={30} color={colors.onSurface}/>
+                    <Text color={colors.onSurface} style={styles.categoryText}>Add</Text>
+                </Pressable>
+            );
+        };
+
+        return (
+            <ScrollView style={{backgroundColor: colors.surface}}>
+                <Center>
+                    <Container
+                        style={[
+                            styles.container,
+                            {backgroundColor: colors.categoriesContainer},
+                        ]}
+                    >
+                        <HStack style={styles.headingBox}>
+                            <Heading style={[styles.heading, {color: colors.onSurface}]}>
+                                {" "}
+                                {titleList[index]}{" "}
+                            </Heading>
+                            {index === 1 && (
+                                <TouchableOpacity
+                                    style={styles.backButton}
+                                    onPress={handleBackPress}
+                                >
+                                    <Icon
+                                        as={Ionicons}
+                                        name="arrow-back"
+                                        size="lg"
+                                        color={colors.onSurface}
+                                    />
+                                </TouchableOpacity>
                             )}
                         </HStack>
-                    )
-                }
-            </Pressable>
-        )
-            ;
-    };
 
-    const AddBox = ({}) => {
-        const [isPressed, setIsPressed] = useState(false);
+                        {/* Emphasize categories for study */}
+                        <VStack style={styles.grid}>
+                            {display
+                                .filter(category =>
+                                    ["Daily Conversations", "Dining and Food", "Family and Relationships"].includes(category.name)
+                                )
+                                .map((category, index) => (
+                                    <CategoryBox
+                                        key={index}
+                                        category={category}
+                                        navigation={navigation}
+                                    />
+                                ))}
 
-        const addFlashcard = () => {
-            console.log("Current curCategory: ", curCategory);
-            console.log("Category ID: ", categoryId)
-            navigation.navigate("FlashcardAdd", {curCategory, currentUser, categoryId});
-        };
+                            {index === 0 &&
+                                <Divider my={4} bg={colors.surface}/>
+                            }
 
-        return (
-            <Pressable
-                style={[
-                    styles.addBox,
-                    {borderColor: colors.onSurface},
-                    isPressed && styles.categoryBoxPressed,
-                    {backgroundColor: colors.categoriesBox},
-                ]}
-                onPressIn={() => setIsPressed(true)}
-                onPressOut={() => setIsPressed(false)}
-                onPress={() => addFlashcard()}
-            >
-                <Ionicons name="add" size={30} color={colors.onSurface}/>
-                <Text color={colors.onSurface} style={styles.categoryTextMobile}>Add</Text>
-            </Pressable>
-        );
-    };
+                            {/* Remaining Categories */}
+                            {display
+                                .filter(category =>
+                                    !["Daily Conversations", "Dining and Food", "Family and Relationships"].includes(category.name)
+                                )
+                                .map((category, index) => (
+                                    <CategoryBox
+                                        key={index}
+                                        category={category}
+                                        navigation={navigation}/>
+                                ))}
+                            {index === 1 && <AddBox/>}
+                        </VStack>
 
-    return (
-        <ScrollView style={{backgroundColor: colors.surface}}>
-            <Center>
-                <Container
-                    style={[
-                        styles.container,
-                        {backgroundColor: colors.categoriesContainer},
-                    ]}
-                >
-                    <HStack style={styles.headingBox}>
-                        <Heading style={[styles.heading, {color: colors.onSurface}]}>
-                            {" "}
-                            {titleList[index]}{" "}
-                        </Heading>
-                        {index === 1 && (
-                            <TouchableOpacity
-                                style={styles.backButton}
-                                onPress={handleBackPress}
-                            >
-                                <Icon
-                                    as={Ionicons}
-                                    name="arrow-back"
-                                    size="lg"
-                                    color={colors.onSurface}
-                                />
-                            </TouchableOpacity>
-                        )}
-                    </HStack>
-
-                    {/* Emphasize categories for study */}
-                    <VStack style={styles.grid}>
-                        {display
-                            .filter(category =>
-                                ["Daily Conversations", "Dining and Food", "Family and Relationships"].includes(category.name)
-                            )
-                            .map((category, index) => (
-                                <CategoryBox
-                                    key={index}
-                                    category={category}
-                                    navigation={navigation}
-                                />
-                            ))}
-
-                        {index === 0 &&
-                            <Divider my={4} bg={colors.surface}/>
-                        }
-
-                        {/* Remaining Categories */}
-                        {display
-                            .filter(category =>
-                                !["Daily Conversations", "Dining and Food", "Family and Relationships"].includes(category.name)
-                            )
-                            .map((category, index) => (
-                                <CategoryBox
-                                    key={index}
-                                    category={category}
-                                    navigation={navigation}/>
-                            ))}
-                        {index === 1 && <AddBox/>}
-                    </VStack>
-
-                    {/* <VStack style={styles.grid}>
+                        {/* <VStack style={styles.grid}>
             {display.map((category, index) => (
               <CategoryBox
                 key={index}
@@ -501,225 +510,226 @@ const FlashcardCategory = () => {
             ))}
             {index === 1 && <AddBox />}
           </VStack> */}
-                </Container>
-            </Center>
-        </ScrollView>
-    );
-};
+                    </Container>
+                </Center>
+            </ScrollView>
+        );
+    };
 
 // might need a bit more work for the dark mode to look fitting
-const styles = StyleSheet.create({
-    popupcontainer: {
-        flex: 1,
-        height: "30%",
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#f5f5f5",
-    },
-    actionButtons: {
-        position: "absolute",
-        top: 10,
-        right: 10,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        width: "20%",
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#f5f5f5",
-    },
-    modalContent: {
-        width: 300,
-        padding: 20,
-        backgroundColor: "white",
-        justifyContent: "center",
-        borderRadius: 10,
-        alignItems: "center",
-    },
-    modalTitle: {
-        fontSize: 18,
-        marginBottom: 10,
-    },
-    input: {
-        width: "100%",
-        borderWidth: 1,
-        borderColor: "#ccc",
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 15,
-    },
-    textInput: {
-        width: "100%",
-        padding: 10,
-        borderColor: "gray",
-        borderWidth: 1,
-        marginBottom: 20,
-        borderRadius: 5,
-    },
-    buttonContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        width: "100%",
-    },
-    addBox: {
-        minWidth: "30%",
-        width: "30%",
-        height: 120,
-        borderStyle: "dashed",
-        marginHorizontal: "1.6%",
-        alignItems: "center",
-        justifyContent: "center",
-        borderColor: "#FFFFFF",
-        borderWidth: 1,
-        borderRadius: 10,
-        padding: 10,
-        marginBottom: 10,
-        shadowColor: "#000",
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 1,
-    },
+    const styles = StyleSheet.create({
+        popupcontainer: {
+            flex: 1,
+            height: "30%",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "#f5f5f5",
+        },
+        actionButtons: {
+            position: "absolute",
+            top: 10,
+            right: 10,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            width: "20%",
+        },
+        modalContainer: {
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "#f5f5f5",
+        },
+        modalContent: {
+            width: 300,
+            padding: 20,
+            backgroundColor: "white",
+            justifyContent: "center",
+            borderRadius: 10,
+            alignItems: "center",
+        },
+        modalTitle: {
+            fontSize: 18,
+            marginBottom: 10,
+        },
+        input: {
+            width: "100%",
+            borderWidth: 1,
+            borderColor: "#ccc",
+            padding: 10,
+            borderRadius: 5,
+            marginBottom: 15,
+        },
+        textInput: {
+            width: "100%",
+            padding: 10,
+            borderColor: "gray",
+            borderWidth: 1,
+            marginBottom: 20,
+            borderRadius: 5,
+        },
+        buttonContainer: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            width: "100%",
+        },
+        addBox: {
+            minWidth: "30%",
+            width: "30%",
+            height: 120,
+            borderStyle: "dashed",
+            marginHorizontal: "1.6%",
+            alignItems: "center",
+            justifyContent: "center",
+            borderColor: "#FFFFFF",
+            borderWidth: 1,
+            borderRadius: 10,
+            padding: 10,
+            marginBottom: 10,
+            shadowColor: "#000",
+            shadowOffset: {width: 0, height: 2},
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 1,
+        },
 
-    container: {
-        width: "95%",
-        minWidth: 300,
-        alignItems: "center",
-        backgroundColor: "white",
-        borderRadius: 10,
-        padding: 20,
-        shadowColor: "#000",
-        shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 2,
-        marginTop: 10,
-        marginBottom: 10,
-    },
-    grid: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        justifyContent: "flex-start",
-        alignSelf: "center",
-        width: "100%",
-    },
-    categoryBox: {
-        width: "30%",
-        height: 120,
-        marginHorizontal: "1.6%",
-        alignItems: "center",
-        justifyContent: "center",
-        borderColor: "#ffffff",
-        borderWidth: 1,
-        borderRadius: 10,
-        padding: 10,
-        marginBottom: 10,
-        shadowColor: "#000",
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 1,
-        position: "relative",
-    },
-    categoryBoxMobile: {
-        width: "47%",
-        height: 120,
-        marginHorizontal: "1.5%",
-        alignItems: "center",
-        justifyContent: "center",
-        borderColor: "#ffffff",
-        borderWidth: 1,
-        borderRadius: 10,
-        padding: 8,
-        paddingHorizontal: 6,
-        marginBottom: 10,
-        shadowColor: "#000",
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 1,
-        position: "relative",
-        overflow: "hidden",
-    },
-    textContainer: {
-        width: "100%",
-        paddingHorizontal: 4,
-        marginVertical: 4,
-        alignItems: "center",
-        justifyContent: "center",
-        flex: 1,
-        flexWrap: 'wrap',
-        alignSelf: 'stretch',
-    },
+        container: {
+            width: "95%",
+            minWidth: 300,
+            alignItems: "center",
+            backgroundColor: "white",
+            borderRadius: 10,
+            padding: 20,
+            shadowColor: "#000",
+            shadowOffset: {width: 0, height: 4},
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 2,
+            marginTop: 10,
+            marginBottom: 10,
+        },
+        grid: {
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "flex-start",
+            alignSelf: "center",
+            width: "100%",
+        },
+        categoryBox: {
+            width: "30%",
+            height: 120,
+            marginHorizontal: "1.6%",
+            alignItems: "center",
+            justifyContent: "center",
+            borderColor: "#ffffff",
+            borderWidth: 1,
+            borderRadius: 10,
+            padding: 10,
+            marginBottom: 10,
+            shadowColor: "#000",
+            shadowOffset: {width: 0, height: 2},
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 1,
+            position: "relative",
+        },
+        categoryBoxMobile: {
+            width: "47%",
+            height: 120,
+            marginHorizontal: "1.5%",
+            alignItems: "center",
+            justifyContent: "center",
+            borderColor: "#ffffff",
+            borderWidth: 1,
+            borderRadius: 10,
+            padding: 8,
+            paddingHorizontal: 6,
+            marginBottom: 10,
+            shadowColor: "#000",
+            shadowOffset: {width: 0, height: 2},
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 1,
+            position: "relative",
+            overflow: "hidden",
+        },
+        textContainer: {
+            width: "100%",
+            paddingHorizontal: 4,
+            marginVertical: 4,
+            alignItems: "center",
+            justifyContent: "center",
+            flex: 1,
+            flexWrap: 'wrap',
+            alignSelf: 'stretch',
+        },
 
-    categoryBoxPressed: {
-        transform: [{translateY: -5}],
-        shadowColor: "#000",
-        shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 3,
-    },
-    categoryText: {
-        marginTop: 8,
-        textAlign: "center",
-        fontSize: 15,
-        flexShrink: 1,
-        flexWrap: "wrap",
-        width: "100%",
-        lineHeight: 20,
-    },
-    categoryTextMobile: {
-        textAlign: "center",
-        fontSize: 12,
-        lineHeight: 15,
-        flexShrink: 1,
-        width: "100%",
-        paddingHorizontal: 2,
-        flexWrap: 'wrap',
-        textAlignVertical: 'center',
-    },
-    headingBox: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        width: "100%",
-        marginBottom: 20,
-        paddingVertical: 8,
-    },
-    checkboxContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 10,
-    },
-    label: {
-        marginLeft: 8,
-        fontSize: 16,
-    },
-    closeButton: {
-        marginTop: 10,
-        padding: 10,
-        backgroundColor: "#2196F3",
-        borderRadius: 5,
-    },
-    modalButtonText: {
-        color: "white",
-        fontSize: 16,
-    },
-    openModalButton: {
-        position: "absolute",
-        bottom: 20,
-        right: 20,
-        padding: 10,
-        backgroundColor: "#2196F3",
-        borderRadius: 5,
-    },
-    openModalButtonText: {
-        color: "white",
-        fontSize: 16,
-    },
-});
+        categoryBoxPressed: {
+            transform: [{translateY: -5}],
+            shadowColor: "#000",
+            shadowOffset: {width: 0, height: 4},
+            shadowOpacity: 0.2,
+            shadowRadius: 8,
+            elevation: 3,
+        },
+        categoryText: {
+            marginTop: 8,
+            textAlign: "center",
+            fontSize: 15,
+            flexShrink: 1,
+            flexWrap: "wrap",
+            width: "100%",
+            lineHeight: 20,
+        },
+        categoryTextMobile: {
+            textAlign: "center",
+            fontSize: 12,
+            lineHeight: 15,
+            flexShrink: 1,
+            width: "100%",
+            paddingHorizontal: 2,
+            flexWrap: 'wrap',
+            textAlignVertical: 'center',
+        },
+        headingBox: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+            marginBottom: 20,
+            paddingVertical: 8,
+        },
+        checkboxContainer: {
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 10,
+        },
+        label: {
+            marginLeft: 8,
+            fontSize: 16,
+        },
+        closeButton: {
+            marginTop: 10,
+            padding: 10,
+            backgroundColor: "#2196F3",
+            borderRadius: 5,
+        },
+        modalButtonText: {
+            color: "white",
+            fontSize: 16,
+        },
+        openModalButton: {
+            position: "absolute",
+            bottom: 20,
+            right: 20,
+            padding: 10,
+            backgroundColor: "#2196F3",
+            borderRadius: 5,
+        },
+        openModalButtonText: {
+            color: "white",
+            fontSize: 16,
+        },
+    });
+}
 
 export default FlashcardCategory;
