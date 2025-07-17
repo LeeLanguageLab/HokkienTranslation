@@ -5,6 +5,7 @@ import {
     TouchableOpacity,
     TextInput,
     Text,
+    useWindowDimensions
 } from "react-native";
 import {
     Box,
@@ -63,9 +64,18 @@ const FlashcardCategory = () => {
     const navigation = useNavigation();
     const {themes, theme} = useTheme();
     const colors = themes[theme];
+    const {width} = useWindowDimensions();
 
     const [display, setDisplay] = useState([]);
     const isFocused = useIsFocused();
+
+    const getDynamicStyles = () => {
+        return {
+            categoryBox: width < 768 ? styles.categoryBoxMobile : styles.categoryBox,
+            categoryText: width < 768 ? styles.categoryTextMobile : styles.categoryText,
+        };
+    };
+    const dynamicStyles = getDynamicStyles();
 
     // check for auth when getting categories
     async function getCategories(db) {
@@ -322,11 +332,14 @@ const FlashcardCategory = () => {
                     console.error("Error fetching categories: ", error);
                 });
             index = 0;
+
+
         };
+
         return (
             <Pressable
                 style={[
-                    styles.categoryBoxMobile,
+                    dynamicStyles.categoryBox,
                     isPressed && styles.categoryBoxPressed,
                     {backgroundColor: colors.categoriesButton}
                 ]}
@@ -371,7 +384,7 @@ const FlashcardCategory = () => {
                     <Ionicons name={category.icon} size={30} color={colors.onSurface}/>
                     <View style={styles.textContainer}>
                         <Text
-                            style={styles.categoryTextMobile}
+                            style={dynamicStyles.categoryText}
                             color={colors.onSurface}
                             numberOfLines={2}
                             ellipsizeMode="tail"
@@ -425,7 +438,7 @@ const FlashcardCategory = () => {
                 onPress={() => addFlashcard()}
             >
                 <Ionicons name="add" size={30} color={colors.onSurface}/>
-                <Text color={colors.onSurface} style={styles.categoryTextMobile}>Add</Text>
+                <Text color={colors.onSurface} style={dynamicStyles.categoryText}>Add</Text>
             </Pressable>
         );
     };
