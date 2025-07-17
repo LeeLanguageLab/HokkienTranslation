@@ -60,19 +60,24 @@ var currentUser = "";
 var deckID = "";
 var categoryId = "";
 
+
 const FlashcardCategory = () => {
-    const navigation = useNavigation();
     const {themes, theme} = useTheme();
     const colors = themes[theme];
+    const navigation = useNavigation();
+
     const {width} = useWindowDimensions();
 
     const [display, setDisplay] = useState([]);
     const isFocused = useIsFocused();
+    const styles = createStyles(colors);
 
     const getDynamicStyles = () => {
         return {
             categoryBox: width < 768 ? styles.categoryBoxMobile : styles.categoryBox,
             categoryText: width < 768 ? styles.categoryTextMobile : styles.categoryText,
+            expectedPointsStyle: width < 768 ? styles.expectedPointsStyleMobile : styles.expectedPointsStyle,
+            isNewDeckStyle: width < 768 ? styles.isNewDeckStyleMobile : styles.isNewDeckStyle,
         };
     };
     const dynamicStyles = getDynamicStyles();
@@ -353,35 +358,21 @@ const FlashcardCategory = () => {
                 {/*console.log("Category Unfamiliarity Score: ", category.unfamiliarityScore);*/}
                 {category.unfamiliarityScore &&
                     (<Text
-                        style={{
-                            position: "absolute",
-                            bottom: 5,
-                            right: 10,
-                            fontSize: 14,
-                            fontWeight: "bold",
-                            color: colors.onSurfaceVariant,
-                        }}
+                        style={dynamicStyles.expectedPointsStyle}
                     >
                         Expected {category.unfamiliarityScore} pts
                     </Text>)
                 }
                 {category.unfamiliarityScore && category.isNewDeck && (
                     <Text
-                        style={{
-                            position: "absolute",
-                            top: 5,
-                            left: 10,
-                            fontSize: 14,
-                            fontWeight: "bold",
-                            color: "red",
-                        }}
+                        style={dynamicStyles.isNewDeckStyle}
                     >
                         New!
                     </Text>)
                 }
 
                 <VStack space={0} alignItems="center" justifyContent="center" marginTop={5}>
-                    <Ionicons name={category.icon} size={30} color={colors.onSurface}/>
+                    <Ionicons name={category.icon} size={index === 0 ? 30 : 0} color={colors.onSurface}/>
                     <View style={styles.textContainer}>
                         <Text
                             style={dynamicStyles.categoryText}
@@ -390,6 +381,7 @@ const FlashcardCategory = () => {
                             ellipsizeMode="tail"
                             // adjustsFontSizeToFit={true}
                             // minimumFontScale={0.8}
+                            paddingBottom={index=== 0 ? 0 : 5}
                         >
                             {category.name}
                         </Text>
@@ -521,218 +513,273 @@ const FlashcardCategory = () => {
 };
 
 // might need a bit more work for the dark mode to look fitting
-const styles = StyleSheet.create({
-    popupcontainer: {
-        flex: 1,
-        height: "30%",
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#f5f5f5",
-    },
-    actionButtons: {
-        position: "absolute",
-        top: 10,
-        right: 10,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        width: "20%",
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#f5f5f5",
-    },
-    modalContent: {
-        width: 300,
-        padding: 20,
-        backgroundColor: "white",
-        justifyContent: "center",
-        borderRadius: 10,
-        alignItems: "center",
-    },
-    modalTitle: {
-        fontSize: 18,
-        marginBottom: 10,
-    },
-    input: {
-        width: "100%",
-        borderWidth: 1,
-        borderColor: "#ccc",
-        padding: 10,
-        borderRadius: 5,
-        marginBottom: 15,
-    },
-    textInput: {
-        width: "100%",
-        padding: 10,
-        borderColor: "gray",
-        borderWidth: 1,
-        marginBottom: 20,
-        borderRadius: 5,
-    },
-    buttonContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        width: "100%",
-    },
-    addBox: {
-        minWidth: "30%",
-        width: "30%",
-        height: 120,
-        borderStyle: "dashed",
-        marginHorizontal: "1.6%",
-        alignItems: "center",
-        justifyContent: "center",
-        borderColor: "#FFFFFF",
-        borderWidth: 1,
-        borderRadius: 10,
-        padding: 10,
-        marginBottom: 10,
-        shadowColor: "#000",
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 1,
-    },
+const createStyles = (colors) => StyleSheet.create({
+        popupcontainer: {
+            flex: 1,
+            height: "30%",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "#f5f5f5",
+        },
+        actionButtons: {
+            position: "absolute",
+            top: 10,
+            right: 10,
+            flexDirection: "row",
+            justifyContent: "space-between",
+            width: "20%",
+        },
+        modalContainer: {
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "#f5f5f5",
+        },
+        modalContent: {
+            width: 300,
+            padding: 20,
+            backgroundColor: "white",
+            justifyContent: "center",
+            borderRadius: 10,
+            alignItems: "center",
+        },
+        modalTitle: {
+            fontSize: 18,
+            marginBottom: 10,
+        },
+        input: {
+            width: "100%",
+            borderWidth: 1,
+            borderColor: "#ccc",
+            padding: 10,
+            borderRadius: 5,
+            marginBottom: 15,
+        },
+        textInput: {
+            width: "100%",
+            padding: 10,
+            borderColor: "gray",
+            borderWidth: 1,
+            marginBottom: 20,
+            borderRadius: 5,
+        },
+        buttonContainer: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            width: "100%",
+        },
+        addBox: {
+            minWidth: "30%",
+            width: "30%",
+            height: 120,
+            borderStyle: "dashed",
+            marginHorizontal: "1.6%",
+            alignItems: "center",
+            justifyContent: "center",
+            borderColor: "#FFFFFF",
+            borderWidth: 1,
+            borderRadius: 10,
+            padding: 10,
+            marginBottom: 10,
+            shadowColor: "#000",
+            shadowOffset: {width: 0, height: 2},
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 1,
+        },
 
-    container: {
-        width: "95%",
-        minWidth: 300,
-        alignItems: "center",
-        backgroundColor: "white",
-        borderRadius: 10,
-        padding: 20,
-        shadowColor: "#000",
-        shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.1,
-        shadowRadius: 8,
-        elevation: 2,
-        marginTop: 10,
-        marginBottom: 10,
-    },
-    grid: {
-        flexDirection: "row",
-        flexWrap: "wrap",
-        justifyContent: "flex-start",
-        alignSelf: "center",
-        width: "100%",
-    },
-    categoryBox: {
-        width: "30%",
-        height: 120,
-        marginHorizontal: "1.6%",
-        alignItems: "center",
-        justifyContent: "center",
-        borderColor: "#ffffff",
-        borderWidth: 1,
-        borderRadius: 10,
-        padding: 10,
-        marginBottom: 10,
-        shadowColor: "#000",
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 1,
-        position: "relative",
-    },
-    categoryBoxMobile: {
-        width: "47%",
-        height: 120,
-        marginHorizontal: "1.5%",
-        alignItems: "center",
-        justifyContent: "center",
-        borderColor: "#ffffff",
-        borderWidth: 1,
-        borderRadius: 10,
-        padding: 8,
-        paddingHorizontal: 6,
-        marginBottom: 10,
-        shadowColor: "#000",
-        shadowOffset: {width: 0, height: 2},
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 1,
-        position: "relative",
-        overflow: "hidden",
-    },
-    textContainer: {
-        width: "100%",
-        paddingHorizontal: 4,
-        marginVertical: 4,
-        alignItems: "center",
-        justifyContent: "center",
-        flex: 1,
-        flexWrap: 'wrap',
-        alignSelf: 'stretch',
-    },
+        container: {
+            width: "95%",
+            minWidth: 300,
+            alignItems: "center",
+            backgroundColor: "white",
+            borderRadius: 10,
+            padding: 20,
+            shadowColor: "#000",
+            shadowOffset: {width: 0, height: 4},
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            elevation: 2,
+            marginTop: 10,
+            marginBottom: 10,
+        },
+        grid: {
+            flexDirection: "row",
+            flexWrap: "wrap",
+            justifyContent: "flex-start",
+            alignSelf: "center",
+            width: "100%",
+        },
+        categoryBox: {
+            width: "30%",
+            height: 120,
+            marginHorizontal: "1.6%",
+            alignItems: "center",
+            justifyContent: "center",
+            borderColor: "#ffffff",
+            borderWidth: 1,
+            borderRadius: 10,
+            padding: 10,
+            marginBottom: 10,
+            shadowColor: "#000",
+            shadowOffset: {width: 0, height: 2},
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 1,
+            position: "relative",
+        },
+        categoryBoxMobile: {
+            width: "47%",
+            height: 120,
+            marginHorizontal: "1.5%",
+            alignItems: "center",
+            justifyContent: "center",
+            borderColor: "#ffffff",
+            borderWidth: 1,
+            borderRadius: 10,
+            padding: 8,
+            paddingHorizontal: 6,
+            marginBottom: 10,
+            shadowColor: "#000",
+            shadowOffset: {width: 0, height: 2},
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 1,
+            position: "relative",
+            overflow: "hidden",
+        },
+        textContainer: {
+            width: "100%",
+            paddingHorizontal: 4,
+            marginVertical: 4,
+            alignItems: "center",
+            justifyContent: "center",
+            flex: 1,
+            flexWrap: 'wrap',
+            alignSelf: 'stretch',
+        },
 
-    categoryBoxPressed: {
-        transform: [{translateY: -5}],
-        shadowColor: "#000",
-        shadowOffset: {width: 0, height: 4},
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 3,
-    },
-    categoryText: {
-        marginTop: 8,
-        textAlign: "center",
-        fontSize: 15,
-        flexShrink: 1,
-        flexWrap: "wrap",
-        width: "100%",
-        lineHeight: 20,
-    },
-    categoryTextMobile: {
-        textAlign: "center",
-        fontSize: 12,
-        lineHeight: 15,
-        flexShrink: 1,
-        width: "100%",
-        paddingHorizontal: 2,
-        flexWrap: 'wrap',
-        textAlignVertical: 'center',
-    },
-    headingBox: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        width: "100%",
-        marginBottom: 20,
-        paddingVertical: 8,
-    },
-    checkboxContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        marginBottom: 10,
-    },
-    label: {
-        marginLeft: 8,
-        fontSize: 16,
-    },
-    closeButton: {
-        marginTop: 10,
-        padding: 10,
-        backgroundColor: "#2196F3",
-        borderRadius: 5,
-    },
-    modalButtonText: {
-        color: "white",
-        fontSize: 16,
-    },
-    openModalButton: {
-        position: "absolute",
-        bottom: 20,
-        right: 20,
-        padding: 10,
-        backgroundColor: "#2196F3",
-        borderRadius: 5,
-    },
-    openModalButtonText: {
-        color: "white",
-        fontSize: 16,
-    },
-});
+        categoryBoxPressed: {
+            transform: [{translateY: -5}],
+            shadowColor: "#000",
+            shadowOffset: {width: 0, height: 4},
+            shadowOpacity: 0.2,
+            shadowRadius: 8,
+            elevation: 3,
+        },
+        categoryText: {
+            marginTop: 8,
+            textAlign: "center",
+            fontSize: 15,
+            flexShrink: 1,
+            flexWrap: "wrap",
+            width: "100%",
+            lineHeight: 20,
+        },
+        categoryTextMobile: {
+            textAlign: "center",
+            fontSize: 12,
+            lineHeight: 15,
+            flexShrink: 1,
+            width: "100%",
+            paddingHorizontal: 2,
+            flexWrap: 'wrap',
+            textAlignVertical: 'center',
+        },
+        headingBox: {
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+            marginBottom: 20,
+            paddingVertical: 8,
+        },
+        checkboxContainer: {
+            flexDirection: "row",
+            alignItems: "center",
+            marginBottom: 10,
+        },
+        label: {
+            marginLeft: 8,
+            fontSize: 16,
+        },
+        closeButton: {
+            marginTop: 10,
+            padding: 10,
+            backgroundColor: "#2196F3",
+            borderRadius: 5,
+        },
+        modalButtonText: {
+            color: "white",
+            fontSize: 16,
+        },
+        openModalButton: {
+            position: "absolute",
+            bottom: 20,
+            right: 20,
+            padding: 10,
+            backgroundColor: "#2196F3",
+            borderRadius: 5,
+        },
+        openModalButtonText: {
+            color: "white",
+            fontSize: 16,
+        },
+
+        expectedPointsStyle: {
+            position: "absolute",
+            bottom:
+                5,
+            right:
+                10,
+            fontSize:
+                14,
+            fontWeight:
+                "bold",
+            color:
+            colors.onSurface
+        },
+        expectedPointsStyleMobile: {
+            position: "absolute",
+            bottom:
+                5,
+            right:
+                10,
+            fontSize:
+                11,
+            fontWeight:
+                "bold",
+            color:
+            colors.onSurface
+        },
+        isNewDeckStyle: {
+            position: "absolute",
+            top:
+                5,
+            left:
+                10,
+            fontSize:
+                14,
+            fontWeight:
+                "bold",
+            color:
+                "red",
+        },
+
+        isNewDeckStyleMobile: {
+            position: "absolute",
+            top:
+                5,
+            left:
+                10,
+            fontSize:
+                11,
+            fontWeight:
+                "bold",
+            color:
+                "red",
+        },
+    })
+;
 
 export default FlashcardCategory;
