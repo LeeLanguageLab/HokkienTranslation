@@ -33,6 +33,13 @@ import { fetchTranslation } from "../backend/API/HokkienTranslationToolService";
 import { fetchNumericTones, fetchAudioUrl } from "../backend/API/TextToSpeechService";
 import TextToSpeech from "./components/TextToSpeech";
 import { fetchRomanizer } from "../backend/API/HokkienHanziRomanizerService";
+import { Ionicons } from "@expo/vector-icons";
+import { IconButton, Icon } from 'native-base';
+import { Modal } from 'native-base';
+import FSRSSettingsMenu from "./FSRSSettingsMenu";
+
+
+
 
 var currentUser = "";
 
@@ -62,6 +69,8 @@ const LearningScreen = (route, navigation) => {
     const [reviewCards, setReviewCards] = useState([]);
     const [currentList, setCurrentList] = useState("New");
     const [showAnswer, setShowAnswer] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
+
 
 
     const fetchSchedulingCards = async () => {
@@ -113,25 +122,21 @@ const LearningScreen = (route, navigation) => {
 
       const getScheduledCards = (cardList) => {
         var dueCards = cardList.filter(card => card.due <= new Date());
-        console.log(dueCards);
-
+        
         // split dueCards by completely new cards and review cards. take new cards out of due cards
-        const newCards = dueCards.filter(card => card.reps === 0);
-        dueCards = dueCards.filter(card => card.reps > 0);
+        const newCards = cardList.filter(card => card.state === 0);
+  
         // cards that have less than 1 day time diff between due date and last review
-        const againCards = dueCards.filter(card => card.due - card.last_review < 86400000);
+        const againCards = cardList.filter(card => card.state === 1 || card.state === 3);
 
         // cards that have more than 1 day time diff between due date and last review
-        const reviewCards = dueCards.filter(card => card.due - card.last_review >= 86400000);
+        const reviewCards = dueCards.filter(card => card.state === 2);
 
         return [newCards, againCards, reviewCards];
       };
 
       const flashcardMapping = (findFlashcard, allFlashcards) => {
-            console.log("Current Flashcard" , findFlashcard)
-            console.log(allFlashcards)
             const newF = allFlashcards.find(flashcard => flashcard.id === findFlashcard.flashcardId);
-            console.log("New Flashcard" , newF)
             if (newF) {
                 return newF
             } else {
@@ -186,7 +191,6 @@ useEffect(() => {
 
 
         var futurecards = FSRSscheduler.repeat(currentCard, new Date());
-        console.log("Error check")
 
 
         var updatedcard = futurecards[number+1].card
@@ -200,12 +204,12 @@ useEffect(() => {
         setSchedulingCardList(updatedSchedulingCardList);
         
         // update the card in the database
-            console.log(currentUser);
         updateOneSchedulingCard(db, currentUser, updatedcard);
    
 
         var cardlog = futurecards[number+1].log
-            console.log("Card Log:", cardlog);
+
+        cardlog.flashcardID = currentId;
         saveReviewInstance(db, currentUser, cardlog);
 
         var newCardsX = newCards;
@@ -225,24 +229,25 @@ useEffect(() => {
         var timeDiff = updatedcard.due - new Date();
         
 
-        if (number === 0) { // this is for again
+        if (updatedcard.state === 0) { // state is new
             // any card in again is put into the againCards list
-            againCardsX = [...againCardsX, updatedcard];
+            alert("New card should not be here");
+            newCardsX = [...newCardsX, updatedcard];
 
         }
-        else { // this is for hard
+        else if (updatedcard.state === 1 || updatedcard.state === 3) { // state is set to learn and relearning
             // check the timeDiff. If less than 1 day, put into againCards, else put into reviewCards
-            console.log("Time Diff:", timeDiff);
-            if (timeDiff < 86400000) {
+            
                 againCardsX = [...againCardsX, updatedcard];
-            } else {
-                reviewCardsX = [...reviewCardsX, updatedcard];
-            }
+         
+            
+        }
+        else if (updatedcard.state === 2) { // state is set to review
+          reviewCardsX = [...reviewCardsX, updatedcard];
         }
         // get all Duecards in again
         
         var dueAgainCards = againCardsX.filter(card => card.due <= new Date());
-        console.log("Due again Cards:", dueAgainCards);
 
         var dueReviewCards = reviewCardsX.filter(card => card.due <= new Date());
         
@@ -272,9 +277,7 @@ useEffect(() => {
                 setCurrentList("Review");
             } else if (againCardsX.length > 0) {
                 // if there are no more cards, set the set the flashcards to again, set the currentList to again
-                console.log("Again Cards 2.5:", againCardsX);
                 var newF = flashcardMapping(againCardsX[0], allFlashcards);
-                console.log("Again Cards 3:", againCardsX);
                 setCurCard(newF);
                 setCurrentList("Again");
             } else {
@@ -286,9 +289,7 @@ useEffect(() => {
 
         }
         
-        console.log("New:", newCardsX);
-        console.log("Review:", reviewCardsX);
-        console.log("Again:", againCardsX);
+
 
         setNewCards(newCardsX);
         setReviewCards(reviewCardsX);
@@ -310,7 +311,6 @@ useEffect(() => {
             setAllFlashcards(allFlashcardsX);
             const schedulingCards = await fetchSchedulingCards();
 
-            console.log(schedulingCards);
             if (!schedulingCards.exists) {
                 
                 const [fsrsScheduler, schedulingCardList] = await initalizeScheduler(flashcardsList);
@@ -387,6 +387,21 @@ useEffect(() => {
 
     return (
         <Center flex={1} px="3" background={colors.surface}>
+          <IconButton
+            icon={<Icon as={Ionicons} name="settings-outline" />}
+            position="absolute"
+            top={4}
+            right={4}
+            zIndex={1}
+            _icon={{
+              color: colors.onSurface,
+              size: 'lg',
+            }}
+            onPress={() => setShowSettings(true)} 
+            _pressed={{
+              bg: colors.primaryContainer,
+            }}
+          />
       <VStack space={4} alignItems="center">
         {/* <Text fontSize="lg" color={colors.onSurface}>
           Question {currentCardIndex + 1} of {flashcards.length}
@@ -562,8 +577,31 @@ useEffect(() => {
             <Text style={{ fontSize: 12, color: 'red', marginRight: 8 }}>{againCards.length}</Text>
             <Text style={{ fontSize: 12, color: 'green', marginRight: 8 }}>{reviewCards.filter(card => card?.due <= new Date()).length}</Text>    
         </Box>
+
+        <Modal isOpen={showSettings} onClose={() => setShowSettings(false)}>
+          <Modal.Content style={{ backgroundColor: colors.surface }}>
+            <Modal.CloseButton />
+            <Modal.Header style={{ backgroundColor: colors.surface }}>Settings</Modal.Header>
+            <Modal.Body>
+              <FSRSSettingsMenu />
+            </Modal.Body>
+            <Modal.Footer style={{ backgroundColor: colors.surface }}>
+              <Button  variant="outline"
+                colorScheme="transparent"
+                  _hover={{
+                    borderColor: colors.highlightButtonBorder,
+                  }}
+                  _pressed={{
+                    borderColor: colors.highlightButtonBorder,
+                  }} 
+                  style={{ color: 'black'}} onPress={() => setShowSettings(false)}>Close</Button>
+            </Modal.Footer>
+          </Modal.Content>
+        </Modal>
     
     </Center>
+
+    
     )
 
 }

@@ -67,13 +67,35 @@ const FlashcardStack = () => {
         headerRight: () => <FeedbackButton />,
       }}
     >
-      <Stack.Screen name="Category" component={LearningScreen} />
+      <Stack.Screen name="Category" component={FlashcardCategory} />
       <Stack.Screen name="Flashcard" component={FlashcardScreen} />
       <Stack.Screen name="Quiz" component={QuizScreen} />
       <Stack.Screen name="FlashcardAdd" component={FlashcardAdd} />
     </Stack.Navigator>
   );
 };
+
+const LearningStack = () => {
+  const { themes, theme } = useTheme();
+  const colors = themes[theme];
+
+  return (
+    <Stack.Navigator
+      initialRouteName="Learning"
+      screenOptions={{
+        headerStyle: { backgroundColor: colors.header },
+        headerTitleStyle: { fontSize: 25, color: colors.onSurface },
+        headerTitleAlign: "center",
+        headerTintColor: colors.onSurface,
+        headerRight: () => <FeedbackButton />,
+      }}
+    >
+      <Stack.Screen name="Learning" component={LearningScreen} />
+    </Stack.Navigator>
+  );
+
+
+}
 
 const MainTabNavigator = () => {
   const { themes, theme } = useTheme();
@@ -89,7 +111,10 @@ const MainTabNavigator = () => {
             iconName = focused ? "home" : "home-outline";
           } else if (route.name === "FlashcardStack") {
             iconName = focused ? "book" : "book-outline";
-          } else if (route.name === "Settings") {
+          } else if (route.name === "Learning") {
+            iconName = focused ? "albums" : "albums-outline";
+          }
+          else if (route.name === "Settings") {
             iconName = focused ? "settings" : "settings-outline";
           }
 
@@ -114,6 +139,11 @@ const MainTabNavigator = () => {
         name="FlashcardStack"
         component={FlashcardStack}
         options={{ title: "Flashcards" }}
+      />
+      <Tab.Screen
+        name="Learning"
+        component={LearningStack}
+        options={{ title: "Learning"}}
       />
       <Tab.Screen name="Settings" component={SettingsScreen} />
     </Tab.Navigator>
