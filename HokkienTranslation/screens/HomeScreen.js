@@ -63,18 +63,38 @@ export default function HomeScreen({ navigation }) {
           justifyContent="flex-end"
           alignItems="center"
         >
-          <IconButton
-            icon={
+          <Button
+            variant="ghost"
+            leftIcon={
               <Ionicons
-                name="settings-outline"
-                size={25}
+                name="musical-notes-outline"
+                size={20}
                 color={colors.onSurfaceVariant}
               />
             }
+            onPress={() => navigation.navigate("LearnTones")}
+            _text={{ color: colors.onSurfaceVariant, fontSize: "sm" }}
             _hover={{ bg: "transparent" }}
             _pressed={{ bg: "transparent" }}
+          >
+            Learn Tones
+          </Button>
+          <Button
+            variant="ghost"
+            leftIcon={
+              <Ionicons
+                name="settings-outline"
+                size={20}
+                color={colors.onSurfaceVariant}
+              />
+            }
             onPress={() => navigation.navigate("Settings")}
-          />
+            _text={{ color: colors.onSurfaceVariant, fontSize: "sm" }}
+            _hover={{ bg: "transparent" }}
+            _pressed={{ bg: "transparent" }}
+          >
+            Settings
+          </Button>
         </Box>
 
         {/* Random Words and Input Box */}

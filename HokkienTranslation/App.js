@@ -20,6 +20,7 @@ import { ComponentVisibilityProvider } from "./screens/context/ComponentVisibili
 import FeedbackButton from "./screens/components/FeedbackButton";
 import FlashcardAdd from "./screens/FlashcardAdd";
 import imageContextScriptComponent from "./backend/scripts/imageContextScriptComponent";
+import LearnTonesScreen from "./screens/LearnTonesScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -48,6 +49,7 @@ const HomeStack = () => {
       <Stack.Screen name="Home" component={HomeScreen} />
       <Stack.Screen name="Result" component={ResultScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
+      <Stack.Screen name="LearnTones" component={LearnTonesScreen} />
     </Stack.Navigator>
   );
 };
