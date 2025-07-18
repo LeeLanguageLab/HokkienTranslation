@@ -5,7 +5,7 @@ import {
     TouchableOpacity,
     TextInput,
     Text,
-    useWindowDimensions
+    useWindowDimensions, Platform
 } from "react-native";
 import {
     Box,
@@ -78,6 +78,7 @@ const FlashcardCategory = () => {
             categoryText: width < 768 ? styles.categoryTextMobile : styles.categoryText,
             expectedPointsStyle: width < 768 ? styles.expectedPointsStyleMobile : styles.expectedPointsStyle,
             isNewDeckStyle: width < 768 ? styles.isNewDeckStyleMobile : styles.isNewDeckStyle,
+            alignItemsEnabler: width < 768 ? {alignItems: "center"} : {},
         };
     };
     const dynamicStyles = getDynamicStyles();
@@ -371,21 +372,22 @@ const FlashcardCategory = () => {
                     </Text>)
                 }
 
-                <VStack space={0} alignItems="center" justifyContent="center" marginTop={5}>
-                    <Ionicons name={category.icon} size={index === 0 ? 30 : 0} color={colors.onSurface}/>
-                    <View style={styles.textContainer}>
+                <VStack space={0} justifyContent="center" marginTop={5} flex={1} alignItems={ Platform.OS=== 'web' ? 'center' : 'flex-start'} >
+                    <Center>
+                        <Ionicons name={category.icon} size={index === 0 ? 30 : 0} color={colors.onSurface}/>
+                    </Center>
+                    <Box flex={1} width="100%" px={1}>
                         <Text
-                            style={dynamicStyles.categoryText}
+                            style={[dynamicStyles.categoryText, {textAlign: 'center', width: '100%'}]}
                             color={colors.onSurface}
-                            numberOfLines={2}
                             ellipsizeMode="tail"
-                            // adjustsFontSizeToFit={true}
-                            // minimumFontScale={0.8}
-                            paddingBottom={index=== 0 ? 0 : 5}
+                            paddingTop={index === 0 ? 7 : 20}
+                            alignItems={Platform.OS=== 'web' ? 'center' : 'flex-start'}
+                            // paddingBottom={index === 0 ? 0 : 5}
                         >
                             {category.name}
                         </Text>
-                    </View>
+                    </Box>
                 </VStack>
                 {
                     index === 1 && (
@@ -614,7 +616,6 @@ const createStyles = (colors) => StyleSheet.create({
             width: "30%",
             height: 120,
             marginHorizontal: "1.6%",
-            alignItems: "center",
             justifyContent: "center",
             borderColor: "#ffffff",
             borderWidth: 1,
@@ -632,7 +633,6 @@ const createStyles = (colors) => StyleSheet.create({
             width: "47%",
             height: 120,
             marginHorizontal: "1.5%",
-            alignItems: "center",
             justifyContent: "center",
             borderColor: "#ffffff",
             borderWidth: 1,
