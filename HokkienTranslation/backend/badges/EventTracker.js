@@ -2,8 +2,11 @@ import { updateUserStats, getUserStats } from './BadgesFunctions';
 import { checkAndUpdateStreak } from '../streaks/CheckAndUpdateStreak';
 import { evaluateAndAwardBadges } from './BadgeEvaluator';
 import {serverTimestamp} from "firebase/firestore";
+import  MixpanelService  from '../API/Mixpanel';
 
 export const recordEvent = async (userId, eventType, eventData = {}, toast = null) => {
+  await MixpanelService.initialize();
+
   try {
     // Get current stats
     const currentStats = await getUserStats(userId) || {};
