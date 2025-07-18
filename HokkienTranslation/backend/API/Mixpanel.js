@@ -10,7 +10,7 @@ class MixpanelService {
     async initialize() {
         if (this.isInitialized) return;
 
-        const user = getCurrentUserActual();
+        const user = await getCurrentUserActual();
         const mixpanelKey = process.env.MIXPANEL_API_KEY;
         const trackAutomaticEvents = false;
         const useNative = false;
@@ -38,6 +38,10 @@ class MixpanelService {
     setUserProperties(properties) {
         if (!this.isInitialized) return;
         this.mixpanel.getPeople().set(properties);
+    }
+
+    setSuperProperties(properties) {
+        this.mixpanel.registerSuperProperties(properties);
     }
 
     // Add other Mixpanel methods as needed
