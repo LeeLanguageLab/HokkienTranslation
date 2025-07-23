@@ -56,13 +56,14 @@ export default function HomeScreen({navigation}) {
     if (Platform.OS === "android") {
         // Register push token when user is available
         const token = useRegisterAndStoreToken(userCred);
+        // Log when token is successfully registered
+        useEffect(() => {
+            if (token && userCred) {
+                console.log("Token registered in HomeScreen:", token.data);
+            }
+        }, [token, userCred]);
     }
-    // Log when token is successfully registered
-    useEffect(() => {
-        if (token && userCred) {
-            console.log("Token registered in HomeScreen:", token.data);
-        }
-    }, [token, userCred]);
+
 
     useFocusEffect(
         React.useCallback(() => {
