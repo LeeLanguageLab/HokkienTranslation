@@ -394,7 +394,9 @@ const LearningScreen = ({route}) => {
                             justifyContent="center"
                         >
                             <VStack space={1} alignItems="center">
-                                <Text fontSize="2xl" alignItems={"center"} color={colors.onSurface} mb={0}>
+                                <Text alignItems={"center"} color={colors.onSurface} mb={0}
+                                      style={{fontSize: 36}}
+                                >
                                     {showAnswer ? curCard.destination : curCard.origin}
                                 </Text>
                                 {!showAnswer && (
@@ -408,6 +410,7 @@ const LearningScreen = ({route}) => {
                                     <>
                                         <HStack space={9} width="100%">
                                             <Button
+                                                bg="red.300"
                                                 size="lg"
                                                 colorScheme={colors.onSurface}
                                                 variant="outline"
@@ -430,6 +433,7 @@ const LearningScreen = ({route}) => {
                                                 </Text>
                                             </Button>
                                             <Button
+                                                bg="orange.300"
                                                 size="lg"
                                                 colorScheme={colors.onSurface}
                                                 variant="outline"
@@ -454,6 +458,7 @@ const LearningScreen = ({route}) => {
                                         </HStack>
                                         <HStack space={9} width="100%">
                                             <Button
+                                                bg="yellow.300"
                                                 size="lg"
                                                 colorScheme={colors.onSurface}
                                                 variant="outline"
@@ -476,6 +481,7 @@ const LearningScreen = ({route}) => {
                                                 </Text>
                                             </Button>
                                             <Button
+                                                bg="green.300"
                                                 size="lg"
                                                 colorScheme={colors.onSurface}
                                                 variant="outline"
