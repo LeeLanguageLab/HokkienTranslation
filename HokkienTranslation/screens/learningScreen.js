@@ -1,45 +1,24 @@
-import React, {useState, useRef, useEffect} from 'react';
-import {View, Text} from 'react-native';
+import React, {useEffect, useRef, useState} from 'react';
+import {Animated, Text} from 'react-native';
 import {
-    getFlashcardList,
-    getSchedulingCards,
+    getFlashcardListFromFlashcardListName,
     getFSRSParameters,
-    putSchedulingCards,
+    getSchedulingCards,
     putFSRSParameters,
-    updateOneSchedulingCard,
-    saveReviewInstance, getFlashcardListFromFlashcardListName
-} from '../backend/database/flashcardFetchFunctions';
+    putSchedulingCards,
+    saveReviewInstance,
+    updateOneSchedulingCard
+} from '../backend/flashcards/flashcardFetchFunctions';
 import {db} from "../backend/database/Firebase";
 import {doc, getDoc} from "firebase/firestore";
 import getCurrentUser from "../backend/database/GetCurrentUser";
-import {
-    Box,
-    Button,
-    Center,
-    VStack,
-    HStack,
-    Progress,
-    ScrollView,
-    Select,
-} from "native-base";
+import {Box, Button, Center, HStack, VStack,} from "native-base";
 import {useTheme} from "./context/ThemeProvider";
-import {Animated, Easing, TouchableOpacity} from "react-native";
-import {
-    generatorParameters,
-    FSRSParameters,
-    FSRS,
-    Rating,
-    RecordLog,
-    fsrs,
-} from "ts-fsrs";
-import {ExtendedCard, createExtendedCard} from './components/extendedCard';
-import {getStoredHokkien} from "../backend/database/DatabaseUtils.js";
+import {FSRS, FSRSParameters, generatorParameters,} from "ts-fsrs";
+import {createExtendedCard} from './components/extendedCard';
 import {useLanguage} from "./context/LanguageProvider";
-import {callOpenAIChat} from "../backend/API/OpenAIChatService";
-import {fetchTranslation} from "../backend/API/HokkienTranslationToolService";
-import {fetchNumericTones, fetchAudioUrl} from "../backend/API/TextToSpeechService";
 import TextToSpeech from "./components/TextToSpeech";
-import {fetchRomanizer} from "../backend/API/HokkienHanziRomanizerService";
+import {getRomanization} from "../backend/flashcards/flashcardRomanizationFunctions";
 
 var currentUser = "";
 
@@ -72,8 +51,6 @@ const LearningScreen = ({route}) => {
 
     const flashcardListName = route.params.flashcardListName;
 
-
-
     const fetchSchedulingCards = async () => {
         try {
             const schedulingCardList = await getSchedulingCards(currentUser, flashcardListName);
@@ -87,15 +64,8 @@ const LearningScreen = ({route}) => {
 
     const fetchFlashcards = async () => {
         try {
-            // (Tanay) this gets data for the current user
-            // const flashcardsList = await getFlashcardList(db, currentUser); // replace with get all scheduled flashcards in db.
-
             const flashcardsList = await getFlashcardListFromFlashcardListName(flashcardListName);
-            // const flashcardIdsX = flashcardsList.map((flashcard) => flashcard.cardList);
-            // const flashcardIds = [].concat.apply([], flashcardIdsX);
-            console.log("List of flashcards:", flashcardsList)
             const flashcardIds = flashcardsList[0].cardList;
-            console.warn("FlashcardIds", flashcardIds);
 
 
             const flashcardList = (await Promise.all(
@@ -423,15 +393,16 @@ const LearningScreen = ({route}) => {
                             flex={1}
                             justifyContent="center"
                         >
-                            <Text fontSize="2xl" alignItems={"center"} color={colors.onSurface} mb={0}>
-                                {showAnswer ? curCard.destination : curCard.origin}
-                                {"\u00A0\u00A0"}
-                                {lang2 === "Hokkien" && (
+                            <VStack space={1} alignItems="center">
+                                <Text fontSize="2xl" alignItems={"center"} color={colors.onSurface} mb={0}>
+                                    {showAnswer ? curCard.destination : curCard.origin}
+                                </Text>
+                                {!showAnswer && (
                                     <TextToSpeech
                                         prompt={curCard.origin}
                                     />
                                 )}
-                            </Text>
+                            </VStack>
                             <VStack space={5} width="100%">
                                 {showAnswer ? (
                                     <>
