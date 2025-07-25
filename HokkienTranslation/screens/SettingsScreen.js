@@ -184,13 +184,13 @@ const SettingsScreen = () => {
 
                 {/* Badges Navigation Header */}
                 <Pressable
-                    onPress={() =>  {
+                    onPress={() => {
                         if (currentUser) {
-                        navigation.navigate('BadgeScreen', {userId: currentUser.uid})
-                    } else {
+                            navigation.navigate('BadgeScreen', {userId: currentUser.uid})
+                        } else {
                             console.warn("User not loaded yet")
-                    }
-                        }}
+                        }
+                    }}
 
                     style={{
                         width: '90%',
@@ -222,6 +222,55 @@ const SettingsScreen = () => {
                                     opacity={0.8}
                                 >
                                     Check your achievements and progress
+                                </Text>
+                            </VStack>
+                        </HStack>
+                        <Ionicons
+                            name="chevron-forward"
+                            size={20}
+                            color={colors.onPrimaryContainer}
+                        />
+                    </HStack>
+                </Pressable>
+
+
+                <Pressable
+                    onPress={() => {
+
+                        navigation.navigate('Leaderboard')
+
+                    }}
+
+                    style={{
+                        width: '90%',
+                        backgroundColor: colors.primaryContainer,
+                        paddingVertical: 16,
+                        paddingHorizontal: 20,
+                        marginBottom: 20,
+                        alignSelf: "center"
+                    }}
+                >
+                    <HStack alignItems="center" justifyContent="space-between" space={3}>
+                        <HStack alignItems="center" space={3}>
+                            <Ionicons
+                                name="trophy"
+                                size={24}
+                                color={colors.onPrimaryContainer}
+                            />
+                            <VStack>
+                                <Text
+                                    fontSize="lg"
+                                    fontWeight="semibold"
+                                    color={colors.onPrimaryContainer}
+                                >
+                                    Leaderboard
+                                </Text>
+                                <Text
+                                    fontSize="sm"
+                                    color={colors.onPrimaryContainer}
+                                    opacity={0.8}
+                                >
+                                    Compare your score with others
                                 </Text>
                             </VStack>
                         </HStack>
