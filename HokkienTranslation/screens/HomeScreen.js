@@ -13,6 +13,7 @@ import {checkAndUpdateStreak} from "../backend/streaks/CheckAndUpdateStreak";
 import FeedbackButton from "./components/FeedbackButton";
 import {LevelProgress} from "./StreaksAndLevelProgress/LevelProgress";
 import {StreakDisplay} from "./StreaksAndLevelProgress/StreakDisplay";
+import {Platform} from "react-native";
 
 export default function HomeScreen({navigation}) {
     const [queryText, setQueryText] = useState("");
@@ -52,15 +53,17 @@ export default function HomeScreen({navigation}) {
         }
     }, []);
 
-    // Register push token when user is available
-    const token = useRegisterAndStoreToken(userCred);
+    if (Platform.OS === "android") {
+        // Register push token when user is available
+        const token = useRegisterAndStoreToken(userCred);
+        // Log when token is successfully registered
+        useEffect(() => {
+            if (token && userCred) {
+                console.log("Token registered in HomeScreen:", token.data);
+            }
+        }, [token, userCred]);
+    }
 
-    // Log when token is successfully registered
-    useEffect(() => {
-        if (token && userCred) {
-            console.log("Token registered in HomeScreen:", token.data);
-        }
-    }, [token, userCred]);
 
     useFocusEffect(
         React.useCallback(() => {
