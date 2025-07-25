@@ -440,7 +440,7 @@ const FlashcardCategory = () => {
 
           {/* Emphasize categories for study */}
           <VStack style={styles.grid}>
-            {/*{display
+            {display
             .filter(category =>
               ["Daily Conversations", "Dining and Food", "Family and Relationships"].includes(category.name)
             )
@@ -454,7 +454,7 @@ const FlashcardCategory = () => {
 
           {index === 0 &&
           <Divider my={4} bg={colors.surface} />
-          }*/}
+          }
 
             {/* Remaining Categories */}
             {display

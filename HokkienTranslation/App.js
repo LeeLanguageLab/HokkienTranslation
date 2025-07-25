@@ -27,6 +27,7 @@ import FlashcardFeedback from "./screens/Notifications/NotificationFeedbackScree
 import {Audio} from 'expo-av';
 import {Platform} from "react-native";
 import {ToastProvider} from "react-native-toast-notifications";
+import LeaderboardScreen from "./screens/LeaderBoardScreen";
 import BadgeScreen from "./screens/badges/BadgeScreen";
 import writeBadges from "./backend/badges/writeBadges";
 
@@ -68,6 +69,7 @@ const HomeStack = () => {
                 component={BadgeScreen}
                 options={{title: 'Badge Collection'}}
             />
+            <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
         </Stack.Navigator>
     );
 };

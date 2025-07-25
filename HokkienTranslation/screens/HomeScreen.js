@@ -15,6 +15,7 @@ import {LevelProgress} from "./StreaksAndLevelProgress/LevelProgress";
 import {StreakDisplay} from "./StreaksAndLevelProgress/StreakDisplay";
 import {Platform} from "react-native";
 
+
 export default function HomeScreen({navigation}) {
     const [queryText, setQueryText] = useState("");
     const [randomInputs, setRandomInputs] = useState([]);
@@ -94,6 +95,7 @@ export default function HomeScreen({navigation}) {
                     headerTitle: () => null,
                     headerRight: () => <FeedbackButton iconOnly={true}/>
                 });
+
             }
         }); // Cleanup subscription
     }, [navigation]);
@@ -138,8 +140,34 @@ export default function HomeScreen({navigation}) {
                     justifyContent="space-between"
                     alignItems="center"
                 >
+                    {/* Leaderboard Button */}
+                    <IconButton
+                      icon={
+                        <Ionicons
+                          name="trophy-outline"
+                          size={25}
+                          color={colors.onSurfaceVariant}
+                        />
+                      }
+                      _hover={{ bg: "transparent" }}
+                      _pressed={{ bg: "transparent" }}
+                      onPress={() => navigation.navigate("Leaderboard")}
+                    />
+                    {/*Settings Button*/}
+                    <IconButton
+                      icon={
+                        <Ionicons
+                          name="settings-outline"
+                          size={25}
+                          color={colors.onSurfaceVariant}
+                        />
+                      }
+                      _hover={{ bg: "transparent" }}
+                      _pressed={{ bg: "transparent" }}
+                      onPress={() => navigation.navigate("Settings")}
+                    />
                 </Box>
-
+                
                 {/* Random Words and Input Box */}
                 <Box w="80%">
                     <QuickInputWords
