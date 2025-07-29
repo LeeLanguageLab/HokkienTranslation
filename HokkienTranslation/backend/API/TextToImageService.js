@@ -1,4 +1,5 @@
 import axios from "axios";
+import MixpanelService from "./Mixpanel";
 // import { IMAGE_API_URL, API_KEY } from "@env";
 
 // const apiUrl = IMAGE_API_URL;
@@ -9,6 +10,9 @@ const apiKey = process.env.API_KEY;
 
 const generateImage = async (prompt) => {
   if (!prompt) return { imgBase64: null, error: null };
+  console.warn("generateImage called with:", prompt);
+
+  await MixpanelService.initialize();
 
   const requestData = {
     prompt: prompt, //option types: string or list of strings.
@@ -30,6 +34,13 @@ const generateImage = async (prompt) => {
       return { imgBase64, error: null };
     }
   } catch (error) {
+    MixpanelService.track("Error in Image Generation", {
+      error: error.message,
+      prompt,
+      type: "error"
+    });
+
+    MixpanelService.flush();
     console.error("Error:", error);
     return { imgBase64: null, error };
   }

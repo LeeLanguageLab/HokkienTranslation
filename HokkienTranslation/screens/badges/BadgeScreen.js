@@ -16,6 +16,7 @@ import {getBadgeScreenData} from "../../backend/badges/BadgesFunctions";
 import {useTheme} from "../context/ThemeProvider";
 import {createDynamicStyles} from "./DynamicStyles";
 import getCurrentUserActual from "../../backend/database/GetCurrentUserActual";
+import MixpanelService from "../../backend/API/Mixpanel";
 
 
 const BadgeScreen = () => {
@@ -27,7 +28,19 @@ const BadgeScreen = () => {
             const userActual = await getCurrentUserActual();
             setUser(userActual);
         };
+
+        const initializeMixpanel = async () => {
+            try {
+                await MixpanelService.initialize();
+                MixpanelService.track("Badge Screen Viewed", {});
+                MixpanelService.flush();
+            } catch (error) {
+                console.error("Mixpanel initialization error:", error);
+            }
+        }
+
         loadUser();
+        initializeMixpanel();
     }, []);
 
     const {themes, theme} = useTheme();

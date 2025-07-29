@@ -1,4 +1,5 @@
 import axios from "axios";
+import MixpanelService from "./Mixpanel";
 // import { ROMANIZER_API_URL, API_KEY } from "@env";
 
 // const apiUrl = ROMANIZER_API_URL;
@@ -6,8 +7,11 @@ import axios from "axios";
 const apiUrl = process.env.ROMANIZER_API_URL;
 const apiKey = process.env.API_KEY;
 
+
 const fetchRomanizer = async (hokkien) => {
+  console.warn("fetchRomanizer called with:", hokkien);
   if (!hokkien) return null;
+  await MixpanelService.initialize()
 
   try {
     const requestData = {
@@ -25,6 +29,12 @@ const fetchRomanizer = async (hokkien) => {
       return response.data.result;
     }
   } catch (error) {
+    MixpanelService.track("Error in Romanizer", {
+      error: error.message,
+      hokkien,
+      type: "error"
+    });
+    MixpanelService.flush();
     console.error("Error:", error);
     throw new Error("Error in romanizing.");
   }
