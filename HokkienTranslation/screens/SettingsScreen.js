@@ -6,7 +6,7 @@ import {Ionicons} from "@expo/vector-icons";
 import {useTheme} from "./context/ThemeProvider";
 import {useLanguage} from "./context/LanguageProvider";
 import {useComponentVisibility} from "./context/ComponentVisibilityContext";
-import SignOut from "./Signout"; // Adjust the path if necessary
+import SignOut from "./components/Signout"; // Adjust the path if necessary
 import {SelectList} from "react-native-dropdown-select-list";
 import {
     countBox1Flashcards,
@@ -182,128 +182,6 @@ const SettingsScreen = () => {
                 }}
             >
 
-                {/* Badges Navigation Header */}
-                <Pressable
-                    onPress={() => {
-                        if (currentUser) {
-                            navigation.navigate('BadgeScreen', {userId: currentUser.uid})
-                        } else {
-                            console.warn("User not loaded yet")
-                        }
-                    }}
-
-                    style={{
-                        width: '90%',
-                        backgroundColor: colors.primaryContainer,
-                        paddingVertical: 16,
-                        paddingHorizontal: 20,
-                        marginBottom: 20,
-                        alignSelf: "center"
-                    }}
-                >
-                    <HStack alignItems="center" justifyContent="space-between" space={3}>
-                        <HStack alignItems="center" space={3}>
-                            <Ionicons
-                                name="medal"
-                                size={24}
-                                color={colors.onPrimaryContainer}
-                            />
-                            <VStack>
-                                <Text
-                                    fontSize="lg"
-                                    fontWeight="semibold"
-                                    color={colors.onPrimaryContainer}
-                                >
-                                    View Your Badges
-                                </Text>
-                                <Text
-                                    fontSize="sm"
-                                    color={colors.onPrimaryContainer}
-                                    opacity={0.8}
-                                >
-                                    Check your achievements and progress
-                                </Text>
-                            </VStack>
-                        </HStack>
-                        <Ionicons
-                            name="chevron-forward"
-                            size={20}
-                            color={colors.onPrimaryContainer}
-                        />
-                    </HStack>
-                </Pressable>
-
-
-                <Pressable
-                    onPress={() => {
-
-                        navigation.navigate('Leaderboard')
-
-                    }}
-
-                    style={{
-                        width: '90%',
-                        backgroundColor: colors.primaryContainer,
-                        paddingVertical: 16,
-                        paddingHorizontal: 20,
-                        marginBottom: 20,
-                        alignSelf: "center"
-                    }}
-                >
-                    <HStack alignItems="center" justifyContent="space-between" space={3}>
-                        <HStack alignItems="center" space={3}>
-                            <Ionicons
-                                name="trophy"
-                                size={24}
-                                color={colors.onPrimaryContainer}
-                            />
-                            <VStack>
-                                <Text
-                                    fontSize="lg"
-                                    fontWeight="semibold"
-                                    color={colors.onPrimaryContainer}
-                                >
-                                    Leaderboard
-                                </Text>
-                                <Text
-                                    fontSize="sm"
-                                    color={colors.onPrimaryContainer}
-                                    opacity={0.8}
-                                >
-                                    Compare your score with others
-                                </Text>
-                            </VStack>
-                        </HStack>
-                        <Ionicons
-                            name="chevron-forward"
-                            size={20}
-                            color={colors.onPrimaryContainer}
-                        />
-                    </HStack>
-                </Pressable>
-
-                {/* Leitner Box Flashcards Info */}
-                <VStack space={2} w="90%" alignSelf="center" mb={4} p={3} bg={colors.primaryContainer}
-                        borderRadius="lg">
-                    <Text fontSize="lg" fontWeight="bold" color={colors.onSurface}>Your Flashcard Learning
-                        Progress</Text>
-
-                    <Pressable onPress={() => navigation.navigate("FlashcardBox", {boxNum: 1})}>
-                        <Text fontSize="lg" color={colors.onSurface}> Box 1
-                            (Unfamiliar): {box1Flashcards ?? "Loading..."}</Text>
-                    </Pressable>
-
-                    <Pressable onPress={() => navigation.navigate("FlashcardBox", {boxNum: 2})}>
-                        <Text fontSize="lg" color={colors.onSurface}> Box 2
-                            (Familiar): {box2Flashcards ?? "Loading..."}</Text>
-                    </Pressable>
-
-                    <Pressable onPress={() => navigation.navigate("FlashcardBox", {boxNum: 3})}>
-                        <Text fontSize="lg" color={colors.onSurface}> Box 3
-                            (Mastered): {box3Flashcards ?? "Loading..."}</Text>
-                    </Pressable>
-                </VStack>
-
                 <VStack space={4} w="90%" alignSelf="center">
                     {/* Appearance section */}
                     <VStack space={2}>
@@ -461,9 +339,6 @@ const SettingsScreen = () => {
                             <FlashcardVisibilityToggle label="Pronunciation" stateKey="textToSpeech"/>
                         </VStack>
                     </VStack>
-
-                    {/* Sign Out section */}
-                    <SignOut/>
                 </VStack>
             </VStack>
         </ScrollView>

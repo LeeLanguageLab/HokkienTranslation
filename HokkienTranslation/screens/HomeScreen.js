@@ -14,6 +14,7 @@ import FeedbackButton from "./components/FeedbackButton";
 import {LevelProgress} from "./StreaksAndLevelProgress/LevelProgress";
 import {StreakDisplay} from "./StreaksAndLevelProgress/StreakDisplay";
 import {Platform} from "react-native";
+import SettingsButton from "./components/SettingsButton";
 
 
 export default function HomeScreen({navigation}) {
@@ -86,14 +87,14 @@ export default function HomeScreen({navigation}) {
                 navigation.setOptions({
                     headerLeft: () => <StreakDisplay/>,
                     headerTitle: () => <LevelProgress/>,
-                    headerRight: () => <FeedbackButton iconOnly={true}/>
+                    headerRight: () => <SettingsButton/>
                 });
             } else {
                 // User not authenticated, use simple header
                 navigation.setOptions({
                     headerLeft: () => null,
                     headerTitle: () => null,
-                    headerRight: () => <FeedbackButton iconOnly={true}/>
+                    headerRight: () => <SettingsButton/>
                 });
 
             }
@@ -133,41 +134,7 @@ export default function HomeScreen({navigation}) {
             contentContainerStyle={{alignItems: "center"}}
         >
             <VStack space={4} alignItems="center" w="100%" mt={5}>
-                {/* Header */}
-                <Box
-                    w="80%"
-                    flexDirection="row"
-                    justifyContent="space-between"
-                    alignItems="center"
-                >
-                    {/* Leaderboard Button */}
-                    <IconButton
-                      icon={
-                        <Ionicons
-                          name="trophy-outline"
-                          size={25}
-                          color={colors.onSurfaceVariant}
-                        />
-                      }
-                      _hover={{ bg: "transparent" }}
-                      _pressed={{ bg: "transparent" }}
-                      onPress={() => navigation.navigate("Leaderboard")}
-                    />
-                    {/*Settings Button*/}
-                    <IconButton
-                      icon={
-                        <Ionicons
-                          name="settings-outline"
-                          size={25}
-                          color={colors.onSurfaceVariant}
-                        />
-                      }
-                      _hover={{ bg: "transparent" }}
-                      _pressed={{ bg: "transparent" }}
-                      onPress={() => navigation.navigate("Settings")}
-                    />
-                </Box>
-                
+
                 {/* Random Words and Input Box */}
                 <Box w="80%">
                     <QuickInputWords
