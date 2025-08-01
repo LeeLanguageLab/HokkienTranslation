@@ -73,7 +73,7 @@ export default function LoginScreen({navigation}) {
                 navigation.dispatch(
                     CommonActions.reset({
                         index: 0,
-                        routes: [{name: "Main"}],
+                        routes: [{name: "Username"}],
                     })
                 );
             })
@@ -134,7 +134,7 @@ export default function LoginScreen({navigation}) {
                 navigation.dispatch(
                     CommonActions.reset({
                         index: 0,
-                        routes: [{name: "Main"}],
+                        routes: [{name: "Username"}],
                     })
                 );
             })

@@ -28,6 +28,7 @@ import {Audio} from 'expo-av';
 import {Platform} from "react-native";
 import {ToastProvider} from "react-native-toast-notifications";
 import LeaderboardScreen from "./screens/LeaderBoardScreen";
+import UsernameScreen from "./screens/UserNameScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -150,6 +151,7 @@ const AppContent = () => {
                 }}
             >
                 <Stack.Screen name="Landing" component={LandingPage}/>
+                <Stack.Screen name="Username" component={UsernameScreen}/>
                 <Stack.Screen name="Main" component={MainTabNavigator}/>
                 <Stack.Screen name="Login" component={LoginScreen}/>
                 <Stack.Screen name="Register" component={RegisterScreen}/>
