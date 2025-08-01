@@ -28,7 +28,7 @@ import {Audio} from 'expo-av';
 import {Platform} from "react-native";
 import {ToastProvider} from "react-native-toast-notifications";
 import LeaderboardScreen from "./screens/LeaderBoardScreen";
-import UsernameScreen from "./screens/UserNameScreen";
+import UsernameScreen from "./screens/UsernameScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
