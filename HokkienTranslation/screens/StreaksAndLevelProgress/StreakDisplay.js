@@ -4,12 +4,14 @@ import {checkAndUpdateStreak} from "../../backend/streaks/CheckAndUpdateStreak";
 import {useEffect, useState} from "react";
 import {View, Text} from "native-base";
 import {useTheme} from "../context/ThemeProvider"
+import {useToast} from "react-native-toast-notifications";
 
 export const StreakDisplay = () => {
     const [loading, setLoading] = useState(true);
-    const [streakData, setStreakData] = useState({streakCount: 0});
+    const [streakData, setStreakData] = useState({streakCount: 0, isNewStreak: false});
     const {themes, theme} = useTheme();
     const colors = themes?.[theme] || {};
+    const toast = useToast();
 
     useEffect(() => {
         const updateStreak = async () => {
@@ -18,7 +20,16 @@ export const StreakDisplay = () => {
                 if (result && typeof result === 'object' && !result.error) {
                     setStreakData(result);
                 } else {
-                    setStreakData({streakCount: 0});
+                    setStreakData({streakCount: 1});
+                }
+                if (result.isNewStreak && result.streakCount > 1) {
+                    console.log("Toast for streaks is working")
+                    toast.show(`New Streak achieved of "${result.streakCount} days! Congratulations!"`, {
+                        type: 'success',
+                        placement: 'top',
+                        duration: 4000,
+                        animationType: 'slide-in',
+                    });
                 }
             } catch (error) {
                 console.error("Error updating streak:", error);
@@ -45,7 +56,7 @@ export const StreakDisplay = () => {
         <View style={styles.streakContainer}>
             <Ionicons name="flame" size={16} color="#FF6B35"/>
             <Text style={[styles.streakText, {color: colors.onSurface}]}>
-                {streakData?.streakCount || 0}
+                {streakData?.streakCount || 1}
             </Text>
         </View>
     );
