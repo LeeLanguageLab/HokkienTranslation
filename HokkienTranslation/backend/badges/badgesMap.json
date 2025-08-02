@@ -1,0 +1,278 @@
+{
+  "quiz_first": {
+    "achievement_id": "quiz_first",
+    "name": "First Quiz",
+    "description": "Complete your very first quiz",
+    "category": "quiz_participation",
+    "rarity": "common",
+    "required_criteria": {
+      "type": "quiz_attempts",
+      "target_value": 1,
+      "comparison": ">="
+    }
+  },
+  "quiz_five": {
+    "achievement_id": "quiz_five",
+    "name": "Quiz Explorer",
+    "description": "Complete 5 quizzes",
+    "category": "quiz_participation",
+    "rarity": "common",
+    "required_criteria": {
+      "type": "quiz_attempts",
+      "target_value": 5,
+      "comparison": ">="
+    }
+  },
+  "quiz_ten": {
+    "achievement_id": "quiz_ten",
+    "name": "Quiz Regular",
+    "description": "Complete 10 quizzes",
+    "category": "quiz_participation",
+    "rarity": "uncommon",
+    "required_criteria": {
+      "type": "quiz_attempts",
+      "target_value": 10,
+      "comparison": ">="
+    }
+  },
+  "quiz_twenty": {
+    "achievement_id": "quiz_twenty",
+    "name": "Quiz Enthusiast",
+    "description": "Complete 20 quizzes",
+    "category": "quiz_participation",
+    "rarity": "rare",
+    "required_criteria": {
+      "type": "quiz_attempts",
+      "target_value": 20,
+      "comparison": ">="
+    }
+  },
+  "quiz_fifty": {
+    "achievement_id": "quiz_fifty",
+    "name": "Quiz Master",
+    "description": "Complete 50 quizzes",
+    "category": "quiz_participation",
+    "rarity": "epic",
+    "required_criteria": {
+      "type": "quiz_attempts",
+      "target_value": 50,
+      "comparison": ">="
+    }
+  },
+  "level_first": {
+    "achievement_id": "level_first",
+    "name": "First Level",
+    "description": "Complete your first level",
+    "category": "level_completion",
+    "rarity": "common",
+    "required_criteria": {
+      "type": "level_completion",
+      "target_value": 1,
+      "comparison": ">="
+    }
+  },
+  "level_five": {
+    "achievement_id": "level_five",
+    "name": "Level Starter",
+    "description": "Complete 5 levels",
+    "category": "level_completion",
+    "rarity": "common",
+    "required_criteria": {
+      "type": "level_completion",
+      "target_value": 5,
+      "comparison": ">="
+    }
+  },
+  "level_ten": {
+    "achievement_id": "level_ten",
+    "name": "Level Explorer",
+    "description": "Complete 10 levels",
+    "category": "level_completion",
+    "rarity": "uncommon",
+    "required_criteria": {
+      "type": "level_completion",
+      "target_value": 10,
+      "comparison": ">="
+    }
+  },
+  "level_twenty": {
+    "achievement_id": "level_twenty",
+    "name": "Level Pro",
+    "description": "Complete 20 levels",
+    "category": "level_completion",
+    "rarity": "rare",
+    "required_criteria": {
+      "type": "level_completion",
+      "target_value": 20,
+      "comparison": ">="
+    }
+  },
+  "level_fifty": {
+    "achievement_id": "level_fifty",
+    "name": "Level Master",
+    "description": "Complete 50 levels",
+    "category": "level_completion",
+    "rarity": "epic",
+    "required_criteria": {
+      "type": "level_completion",
+      "target_value": 50,
+      "comparison": ">="
+    }
+  },
+  "streak_one": {
+    "achievement_id": "streak_one",
+    "name": "First Streak",
+    "description": "Play for 1 day in a row",
+    "category": "daily_streak",
+    "rarity": "common",
+    "required_criteria": {
+      "type": "daily_streak",
+      "target_value": 1,
+      "comparison": ">="
+    }
+  },
+  "streak_three": {
+    "achievement_id": "streak_three",
+    "name": "Three Day Streak",
+    "description": "Play for 3 days in a row",
+    "category": "daily_streak",
+    "rarity": "common",
+    "required_criteria": {
+      "type": "daily_streak",
+      "target_value": 3,
+      "comparison": ">="
+    }
+  },
+  "streak_seven": {
+    "achievement_id": "streak_seven",
+    "name": "Week Warrior",
+    "description": "Play for 7 days in a row",
+    "category": "daily_streak",
+    "rarity": "uncommon",
+    "required_criteria": {
+      "type": "daily_streak",
+      "target_value": 7,
+      "comparison": ">="
+    }
+  },
+  "streak_fourteen": {
+    "achievement_id": "streak_fourteen",
+    "name": "Two Week Champion",
+    "description": "Play for 14 days in a row",
+    "category": "daily_streak",
+    "rarity": "rare",
+    "required_criteria": {
+      "type": "daily_streak",
+      "target_value": 14,
+      "comparison": ">="
+    }
+  },
+  "streak_thirty": {
+    "achievement_id": "streak_thirty",
+    "name": "Monthly Master",
+    "description": "Play for 30 days in a row",
+    "category": "daily_streak",
+    "rarity": "epic",
+    "required_criteria": {
+      "type": "daily_streak",
+      "target_value": 30,
+      "comparison": ">="
+    }
+  },
+  "score_hundred": {
+    "achievement_id": "score_hundred",
+    "name": "Century Scorer",
+    "description": "Score 100 points in a single quiz",
+    "category": "high_score",
+    "rarity": "rare",
+    "required_criteria": {
+      "type": "single_quiz_score",
+      "target_value": 100,
+      "comparison": ">="
+    }
+  },
+  "score_perfect": {
+    "achievement_id": "score_perfect",
+    "name": "Perfect Score",
+    "description": "Get 100% on any quiz",
+    "category": "high_score",
+    "rarity": "epic",
+    "required_criteria": {
+      "type": "quiz_percentage",
+      "target_value": 100,
+      "comparison": "=="
+    }
+  },
+  "deck_first": {
+    "achievement_id": "deck_first",
+    "name": "First Deck",
+    "description": "Complete your first flashcard deck",
+    "category": "deck_completion",
+    "rarity": "common",
+    "required_criteria": {
+      "type": "deck_completion",
+      "target_value": 1,
+      "comparison": ">="
+    }
+  },
+  "deck_three": {
+    "achievement_id": "deck_three",
+    "name": "Deck Explorer",
+    "description": "Complete 3 flashcard decks",
+    "category": "deck_completion",
+    "rarity": "common",
+    "required_criteria": {
+      "type": "deck_completion",
+      "target_value": 3,
+      "comparison": ">="
+    }
+  },
+  "deck_five": {
+    "achievement_id": "deck_five",
+    "name": "Deck Regular",
+    "description": "Complete 5 flashcard decks",
+    "category": "deck_completion",
+    "rarity": "uncommon",
+    "required_criteria": {
+      "type": "deck_completion",
+      "target_value": 5,
+      "comparison": ">="
+    }
+  },
+  "deck_ten": {
+    "achievement_id": "deck_ten",
+    "name": "Deck Enthusiast",
+    "description": "Complete 10 flashcard decks",
+    "category": "deck_completion",
+    "rarity": "uncommon",
+    "required_criteria": {
+      "type": "deck_completion",
+      "target_value": 10,
+      "comparison": ">="
+    }
+  },
+  "deck_twenty": {
+    "achievement_id": "deck_twenty",
+    "name": "Deck Pro",
+    "description": "Complete 20 flashcard decks",
+    "category": "deck_completion",
+    "rarity": "rare",
+    "required_criteria": {
+      "type": "deck_completion",
+      "target_value": 20,
+      "comparison": ">="
+    }
+  },
+  "deck_fifty": {
+    "achievement_id": "deck_fifty",
+    "name": "Deck Master",
+    "description": "Complete 50 flashcard decks",
+    "category": "deck_completion",
+    "rarity": "epic",
+    "required_criteria": {
+      "type": "deck_completion",
+      "target_value": 50,
+      "comparison": ">="
+    }
+  }
+}

@@ -24,6 +24,7 @@ import {
     where,
     query,
 } from "firebase/firestore";
+import { useToast } from 'react-native-toast-notifications';
 import {Audio} from "expo-av";
 import {db} from "../backend/database/Firebase";
 import getCurrentUser from "../backend/database/GetCurrentUser";
@@ -41,8 +42,11 @@ import {
     updateUserPoints,
     isFirstTimeQuiz
 } from "../backend/database/LeitnerSystemHelpers.js";
+import {recordQuizCompletion} from "../backend/badges/EventTracker";
+import getCurrentUserActual from "../backend/database/GetCurrentUserActual";
 
 const QuizScreen = ({route}) => {
+    const toast = useToast()
     const {theme, themes} = useTheme();
     const colors = themes[theme];
     const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -67,9 +71,10 @@ const QuizScreen = ({route}) => {
     const [beFirstTimeQuiz, setBeFirstTimeQuiz] = useState(false);
     const [totalPoints, setTotalPoints] = useState(0);
     const [errorMessage, setErrorMessage] = useState(null);
+    const [quizStartTime, setQuizStartTime] = useState(Date.now());
 
     const flashcardListName = route.params.flashcardListName;
-    console.log("QuizScreen: flashcardListName", flashcardListName);
+    // console.log("QuizScreen: flashcardListName", flashcardListName);
 
     const translateText = async (text, language) => {
         try {
@@ -97,6 +102,7 @@ const QuizScreen = ({route}) => {
     };
 
     const handleStartQuiz = () => {
+        setQuizStartTime(Date.now());
         setQuizStarted(true);
     }
 
@@ -120,6 +126,7 @@ const QuizScreen = ({route}) => {
                 }
 
                 const user = await getCurrentUser();
+                const userActual = await getCurrentUserActual();
                 const userEmail = user;
                 const firstTime = await isFirstTimeQuiz(userEmail, flashcardListName);
                 console.log("First time quiz: ", firstTime);
@@ -250,10 +257,12 @@ const QuizScreen = ({route}) => {
     };
 
     const handleSubmit = async (index) => {
+        console.log("handleSubmit called with index:", index);
         setSelectedAnswer(index);
         setIsDisabled(true);
 
         const user = await getCurrentUser();
+        const userActual = await getCurrentUserActual();
         const userEmail = user;
 
         const isCorrect =
@@ -302,7 +311,16 @@ const QuizScreen = ({route}) => {
                 if (beFirstTimeQuiz) {
                     await updateUserPoints(userEmail, 30);
                     await appendToLearnedDecks(userEmail, flashcardListName);
-                };
+                }
+                ;
+
+                await recordQuizCompletion(userActual.uid, {
+                    quizId: flashcardListName,
+                    score: score + (isCorrect ? 1 : 0),
+                    percentage: ((score + (isCorrect ? 1 : 0)) / flashcards.length) * 100,
+                    timeSpent: Date.now() - quizStartTime,
+                    category: 'flashcard_quiz'
+                }, toast);
 
                 const quizQuerySnapshot = await getDocs(quizQuery);
                 const scores = quizQuerySnapshot.docs[0].data().scores[userEmail];
@@ -382,7 +400,7 @@ const QuizScreen = ({route}) => {
                         "No flashcardQuiz document found with the given flashcardListName."
                     );
                 }
-                showScoreHistory(userEmail, flashcardListName);
+                await showScoreHistory(userEmail, flashcardListName);
             } catch (error) {
                 console.error("Error updating quiz scores: ", error);
                 setErrorMessage("Error updating quiz scores. Please try again later.");

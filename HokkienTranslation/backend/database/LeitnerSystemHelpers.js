@@ -1,16 +1,16 @@
 import {db} from "./Firebase.js";
 import {
+    addDoc,
+    arrayUnion,
     collection,
     doc,
-    addDoc,
-    setDoc,
     getDoc,
     getDocs,
-    updateDoc,
     query,
-    where,
     serverTimestamp,
-    arrayUnion
+    setDoc,
+    updateDoc,
+    where
 } from "firebase/firestore";
 
 
@@ -286,9 +286,7 @@ export const getUserLevel = async (userId, pointsPerLevel) => {
         const docData = querySnapshot.docs[0].data();
 
         const currPoints = docData.points;
-        const level = Math.floor(currPoints / pointsPerLevel) + 1;
-
-        return level;
+        return Math.floor(currPoints / pointsPerLevel) + 1;
 
     } catch (error) {
         console.error("Error getting user level:", error);
@@ -313,8 +311,7 @@ export const getUserPoints = async (userId) => {
 
         const docData = querySnapshot.docs[0].data();
 
-        const currPoints = docData.points;
-        return currPoints;
+        return docData.points;
 
     } catch (error) {
         console.error("Error getting user level:", error);
@@ -356,7 +353,7 @@ export const countBox2Flashcards = async (userId) => {
         // return querySnapshot.size;
 
         const userBoxesRef = collection(db, "leitnerBoxes", userId, "userBoxes");
-        const q = query(userBoxesRef, where("boxNum", "==", 1));
+        const q = query(userBoxesRef, where("boxNum", "==", 2));
         const querySnapshot = await getDocs(q);
         return querySnapshot.size;
 

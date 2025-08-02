@@ -28,6 +28,11 @@ import {Audio} from 'expo-av';
 import {Platform} from "react-native";
 import {ToastProvider} from "react-native-toast-notifications";
 import LeaderboardScreen from "./screens/LeaderBoardScreen";
+import BadgeScreen from "./screens/badges/BadgeScreen";
+import writeBadges from "./backend/badges/writeBadges";
+import SettingsButton from "./screens/components/SettingsButton";
+import AnalyticsScreen from "./screens/AnalyticsScreen";
+import SignOut from "./screens/components/Signout";
 import UsernameScreen from "./screens/UsernameScreen";
 
 const Stack = createNativeStackNavigator();
@@ -52,18 +57,22 @@ const HomeStack = () => {
                 },
                 headerTitleAlign: "center",
                 headerTintColor: colors.onSurface,
-                headerRight: () => <FeedbackButton/>,
+                headerRight: () => <SettingsButton/>,
             })}
         >
             <Stack.Screen name="Home" component={HomeScreen}/>
             <Stack.Screen name="Result" component={ResultScreen}/>
-            <Stack.Screen name="Settings" component={SettingsScreen}/>
+            <Stack.Screen
+                name="Settings"
+                component={SettingsScreen}
+                options={{headerRight: () => <SignOut/>}}
+            />
             <Stack.Screen
                 name="FlashcardBox"
                 component={FlashcardBoxScreen}
                 options={{title: "Your Flashcard Learning Progress"}}
             />
-            <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
+
         </Stack.Navigator>
     );
 };
@@ -80,7 +89,7 @@ const FlashcardStack = () => {
                 headerTitleStyle: {fontSize: 25, color: colors.onSurface},
                 headerTitleAlign: "center",
                 headerTintColor: colors.onSurface,
-                headerRight: () => <FeedbackButton/>,
+                headerRight: () => <SettingsButton/>,
             }}
         >
             <Stack.Screen name="Category" component={FlashcardCategory}/>
@@ -90,6 +99,45 @@ const FlashcardStack = () => {
         </Stack.Navigator>
     );
 };
+
+const AnalyticsStack = () => {
+    const {themes, theme} = useTheme();
+    const colors = themes[theme];
+
+    return (
+        <Stack.Navigator
+            screenOptions={({route}) => ({
+                headerShown: true,
+                headerStyle: {
+                    backgroundColor: colors.header,
+                },
+                headerTitleStyle: {
+                    fontSize: 25,
+                    color: colors.onSurface,
+                },
+                headerTitleAlign: "center",
+                headerTintColor: colors.onSurface,
+                headerRight: () => <SettingsButton/>,
+            })}
+        >
+            <Stack.Screen
+                name="AnalyticsMain"
+                component={AnalyticsScreen}
+                options={{
+                    title: "Analytics" // or whatever title you want
+                }}
+            />
+
+            <Stack.Screen
+                name="BadgeScreen"
+                component={BadgeScreen}
+                options={{title: 'Badge Collection'}}
+            />
+            <Stack.Screen name="Leaderboard" component={LeaderboardScreen}/>
+        </Stack.Navigator>
+    );
+};
+
 
 const MainTabNavigator = () => {
     const {themes, theme} = useTheme();
@@ -105,8 +153,8 @@ const MainTabNavigator = () => {
                         iconName = focused ? "home" : "home-outline";
                     } else if (route.name === "FlashcardStack") {
                         iconName = focused ? "book" : "book-outline";
-                    } else if (route.name === "Settings") {
-                        iconName = focused ? "settings" : "settings-outline";
+                    } else if (route.name === "AnalyticsStack") {
+                        iconName = focused ? "stats-chart" : "stats-chart-outline";
                     }
 
                     return <Ionicons name={iconName} size={size} color={color}/>;
@@ -131,7 +179,11 @@ const MainTabNavigator = () => {
                 component={FlashcardStack}
                 options={{title: "Flashcards"}}
             />
-            <Tab.Screen name="Settings" component={SettingsScreen}/>
+            <Tab.Screen
+                name="AnalyticsStack"
+                component={AnalyticsStack}
+                options={{title: "Analytics"}}
+            />
         </Tab.Navigator>
     );
 };
@@ -178,6 +230,15 @@ export default function App() {
     // const data = JSON.stringify(notification, undefined, 2);
     // console.log("Notification Data:", data)
 
+    // // For Writing new badges
+    // useEffect(() => {
+    //     writeBadges().then(() => {
+    //         console.log("Badges written successfully");
+    //     }, (error) => {
+    //         console.error("Error writing badges:", error);
+    //     });
+    // }, []);
+
     // For adding audio
     useEffect(() => {
         Audio.setAudioModeAsync({
@@ -206,7 +267,7 @@ export default function App() {
                                                 screens: {
                                                     HomeStack: 'HomeStack',
                                                     FlashcardStack: 'FlashcardStack',
-                                                    Settings: 'Settings'
+                                                    Analytics: 'Analytics'
                                                 }
                                             },
                                             Login: 'Login',
