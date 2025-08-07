@@ -3,6 +3,7 @@ import {View, Text, StyleSheet} from 'react-native';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from "../context/ThemeProvider";
 import {createDynamicStyles} from "./DynamicStyles";
+import {handleDateFormat} from "../../backend/handleDateFormat";
 
 const Badge = ({
                    badge = null,
@@ -13,31 +14,7 @@ const Badge = ({
     const {themes, theme} = useTheme();
     const colors = themes?.[theme] || {};
 
-    const formatEarnedDate = (earnedDate) => {
-        try {
-            // Handle Firebase Timestamp object (from serverTimestamp)
-            if (earnedDate && typeof earnedDate === 'object' && earnedDate.seconds) {
-                return earnedDate.toDate().toLocaleDateString();
-            }
 
-            // Handle ISO string format (2025-06-19T11:17:45.563Z)
-            if (typeof earnedDate === 'string' && earnedDate.includes('T')) {
-                return new Date(earnedDate).toLocaleDateString();
-            }
-
-            // Handle Firebase timestamp string format (June 23, 2025 at 4:09:18 PM UTC+5:30)
-            if (typeof earnedDate === 'string' && earnedDate.includes(' at ')) {
-                const datePart = earnedDate.split(' at ')[0];
-                return new Date(datePart).toLocaleDateString();
-            }
-
-            // Fallback for other formats or Date objects
-            return new Date(earnedDate).toLocaleDateString();
-        } catch (error) {
-            console.warn('Error parsing date:', earnedDate, error);
-            return 'Invalid date';
-        }
-    };
 
     // Early return if badge is null/undefined
     if (!badge) {
@@ -166,7 +143,7 @@ const Badge = ({
                 {isEarned && earnedDate && (
                     <View style={dynamicStyles.earnedDateContainer}>
                         <Text style={dynamicStyles.earnedDateText}>
-                            Earned {formatEarnedDate(earnedDate)}
+                            Earned {handleDateFormat(earnedDate)}
                         </Text>
                     </View>
                 )}
