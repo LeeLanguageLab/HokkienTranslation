@@ -20,6 +20,7 @@ import {LanguageProvider} from "./screens/context/LanguageProvider";
 import {ComponentVisibilityProvider} from "./screens/context/ComponentVisibilityContext";
 import FeedbackButton from "./screens/components/FeedbackButton";
 import FlashcardAdd from "./screens/FlashcardAdd";
+import LearningScreen from "./screens/learningScreen";
 import imageContextScriptComponent from "./backend/scripts/imageContextScriptComponent";
 import {usePushNotifications} from "./backend/notifications/usePushNotifications";
 import {navigationRef} from "./screens/Navigation/RootNavigation";
@@ -91,6 +92,7 @@ const FlashcardStack = () => {
             <Stack.Screen name="Flashcard" component={FlashcardScreen}/>
             <Stack.Screen name="Quiz" component={QuizScreen}/>
             <Stack.Screen name="FlashcardAdd" component={FlashcardAdd} options={{title: "Add New Flashcard Deck"}}/>
+            <Stack.Screen name="FlashcardStudy" component={LearningScreen} options={{title: "Study Flashcards"}}/>
         </Stack.Navigator>
     );
 };

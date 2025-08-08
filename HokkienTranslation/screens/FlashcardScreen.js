@@ -39,6 +39,9 @@ import {generateOptions} from "../backend/API/GenerateOptions";
 import {recordDeckCompletion} from "../backend/badges/EventTracker";
 import {useToast} from "react-native-toast-notifications";
 import getCurrentUserActual from "../backend/database/GetCurrentUserActual";
+import {StudyButton} from "./components/StudyButton";
+import {createRomanization} from "../backend/flashcards/flashcardRomanizationFunctions";
+import {setFlashcard, updateFlashcardData} from "../backend/flashcards/flashcardPutFunctions";
 
 const FlashcardScreen = ({route, navigation}) => {
     // Theme and Language
@@ -99,6 +102,8 @@ const FlashcardScreen = ({route, navigation}) => {
         // flashcardVisibilityStates.englishDefinition ||
         flashcardVisibilityStates.hokkienSentence ||
         flashcardVisibilityStates.englishSentence;
+
+    const [isLearningScreen, setIsLearningScreen] = useState(null);
 
     const translateText = async (text, language) => {
         try {
@@ -326,9 +331,11 @@ const FlashcardScreen = ({route, navigation}) => {
                 return;
             }
 
-            const romanization = await fetchNumericTones(enteredWord);
-            const audioBlob = await fetchAudioBlob(romanization);
-            const audioUrl = await uploadAudioFromBlob(romanization, audioBlob);
+            // const romanization = await fetchNumericTones(enteredWord);
+            // const audioBlob = await fetchAudioBlob(romanization);
+            // const audioUrl = await uploadAudioFromBlob(romanization, audioBlob);
+            const {romanization, audioBlob, audioUrl} = createRomanization(enteredWord);
+
 
             // console.log("Current user is ", currentUser);
             // console.log("Current categoryId is ", categoryId);
@@ -412,9 +419,7 @@ const FlashcardScreen = ({route, navigation}) => {
                 ...(downloadURL !== null && {downloadURL}) // do not add a downloadURL if it is null
             };
 
-            const flashcardRef = doc(collection(db, "flashcard"));
-            await setDoc(flashcardRef, newFlashcardData);
-            const newFlashcardID = flashcardRef.id;
+            const newFlashcardID = await setFlashcard(newFlashcardData)
             console.log("Flashcard created successfully with ID:", newFlashcardID);
 
             // Initialize Leitner Box
@@ -493,15 +498,23 @@ const FlashcardScreen = ({route, navigation}) => {
                 alert("Please fill out all required fields");
                 return;
             }
+            //
+            // const flashcardRef = doc(db, "flashcard", flashcardID);
+            // await updateDoc(flashcardRef, {
+            //     origin: enteredWord,
+            //     destination: enteredTranslation,
+            //     otherOptions: [option1, option2, option3],
+            //     type: type,
+            //     updatedAt: serverTimestamp(),
+            // });
 
-            const flashcardRef = doc(db, "flashcard", flashcardID);
-            await updateDoc(flashcardRef, {
+            await updateFlashcardData(flashcardID, {
                 origin: enteredWord,
                 destination: enteredTranslation,
                 otherOptions: [option1, option2, option3],
                 type: type,
                 updatedAt: serverTimestamp(),
-            });
+            })
 
             setFlashcards((prevFlashcards) =>
                 prevFlashcards.map((flashcard, index) =>
@@ -1089,7 +1102,12 @@ const FlashcardScreen = ({route, navigation}) => {
                         word={flashcards[currentCardIndex].word}
                         translation={flashcards[currentCardIndex].translation}
                     />
+                    <StudyButton
+                        colors={colors}
+                        flashcardListName={flashcardListName}
+                    />
                 </Center>
+
             </Box>
         </ScrollView>
     );
