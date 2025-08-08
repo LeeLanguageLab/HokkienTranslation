@@ -18,7 +18,7 @@ const checkAndUpdateStreak = async (): Promise<StreakResult> => {
             return {error: "No authenticated user"};
         }
 
-        const userRef = doc(db, 'userStreak', userId);
+        const userRef = doc(db, 'userStats', userId);
 
         return await runTransaction(db, async (transaction) => {
             const userDoc = await transaction.get(userRef);

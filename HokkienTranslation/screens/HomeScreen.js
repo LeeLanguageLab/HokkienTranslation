@@ -7,24 +7,19 @@ import {useTheme} from "./context/ThemeProvider";
 import {collection, getDocs} from "firebase/firestore";
 import {auth, db} from "../backend/database/Firebase";
 import QuickInputWords from "./components/QuickInputWords";
-import getCurrentUser from "../backend/database/GetCurrentUser";
-import {getUserLevel, getUserPoints} from "../backend/database/LeitnerSystemHelpers.js";
 import {useRegisterAndStoreToken} from "../backend/notifications/RegisterAndStoreToken";
 import {useLocalNotifications} from "../backend/notifications/useLocalNotifications";
 import {checkAndUpdateStreak} from "../backend/streaks/CheckAndUpdateStreak";
 import FeedbackButton from "./components/FeedbackButton";
 import {LevelProgress} from "./StreaksAndLevelProgress/LevelProgress";
 import {StreakDisplay} from "./StreaksAndLevelProgress/StreakDisplay";
+import {Platform} from "react-native";
 
 export default function HomeScreen({navigation}) {
     const [queryText, setQueryText] = useState("");
     const [randomInputs, setRandomInputs] = useState([]);
-    const [userLevel, setUserLevel] = useState(null);
-    const [userPoints, setUserPoints] = useState(null);
-    const [levelProgress, setLevelProgress] = useState(null);
     const {theme, themes} = useTheme();
     const colors = themes[theme];
-    const pointsPerLevel = 100;
     const [userCred, setUserCred] = useState(null);
 
     const {
@@ -58,15 +53,17 @@ export default function HomeScreen({navigation}) {
         }
     }, []);
 
-    // Register push token when user is available
-    const token = useRegisterAndStoreToken(userCred);
+    if (Platform.OS === "android") {
+        // Register push token when user is available
+        const token = useRegisterAndStoreToken(userCred);
+        // Log when token is successfully registered
+        useEffect(() => {
+            if (token && userCred) {
+                console.log("Token registered in HomeScreen:", token.data);
+            }
+        }, [token, userCred]);
+    }
 
-    // Log when token is successfully registered
-    useEffect(() => {
-        if (token && userCred) {
-            console.log("Token registered in HomeScreen:", token.data);
-        }
-    }, [token, userCred]);
 
     useFocusEffect(
         React.useCallback(() => {
@@ -123,32 +120,9 @@ export default function HomeScreen({navigation}) {
         return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
     };
 
-    const fetchUserLevelPointsProgress = async () => {
-        const user = await getCurrentUser();
-        const userEmail = user;
-        const level = await getUserLevel(userEmail, pointsPerLevel);
-        const points = await getUserPoints(userEmail);
-        console.log("user level: ", userLevel);
-        console.log("user points", userPoints);
-        setUserLevel(level);
-        setUserPoints(points);
-        setLevelProgress((points - ((level - 1) * 100)) / 100);
-    };
-
-    const fetchUserFlashcardProgress = async () => {
-        const user = await getCurrentUser();
-        const userEmail = user;
-    };
-
     useEffect(() => {
         fetchRandomInputs();
     }, [])
-
-    useFocusEffect(
-        useCallback(() => {
-            fetchUserLevelPointsProgress();
-        }, [])
-    );
 
     return (
         <ScrollView

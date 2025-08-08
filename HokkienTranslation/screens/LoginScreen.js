@@ -83,45 +83,44 @@ export default function LoginScreen({navigation}) {
                 const errorCode = error.code;
                 switch (errorCode) {
                     case "auth/user-not-found":
-                        setMessage("No account found with this email address. Please check your email or create a new account.");
+                        toastMessage = "No account found with this email address. Please check your email or create " +
+                            "a new account."
                         break;
                     case "auth/wrong-password":
-                        setMessage("Incorrect password. Please try again or use 'Forgot Password'.");
+                        toastMessage = "Incorrect password. Please try again or use 'Forgot Password'."
                         break;
                     case "auth/invalid-email":
-                        setMessage("Please enter a valid email address.");
+                        toastMessage = "Please enter a valid email address."
                         break;
                     case "auth/user-disabled":
-                        setMessage("This account has been disabled. Please contact support.");
+                        toastMessage = "This account has been disabled. Please contact support."
                         break;
                     case "auth/too-many-requests":
-                        setMessage("Too many failed attempts. Please try again later.");
+                        toastMessage = "Too many failed attempts. Please try again later."
                         break;
                     case "auth/network-request-failed":
-                        setMessage("Network error. Please check your internet connection and try again.");
+                        toastMessage = "Network error. Please check your internet connection and try again."
                         break;
                     case "auth/operation-not-allowed":
-                        setMessage("Email/password sign-in is not enabled. Please contact support.");
+                        toastMessage = "Email/password sign-in is not enabled. Please contact support."
                         break;
                     case "auth/internal-error":
-                        setMessage("An internal error occurred. Please try again later.");
+                        toastMessage = "An internal error occurred. Please try again later."
                         break;
                     case "auth/invalid-credential":
-                        setMessage("Your password is invalid or the user does not have a password." +
-                            "Please try using forgot password or login with Google.");
                         toastMessage = "Your password is invalid or the user does not have a password. " +
                             "Please try using forgot password or login with Google."
-
+                        break;
+                    default:
+                        setMessage(error.message || "An unexpected error occurred. Please try again.");
+                }
+                toast.hideAll();
                         toast.show(toastMessage, {
                             type: toastType,
                             placement: "top",
                             duration: 4000,
                             animationType: "slide-in",
                         })
-                        break;
-                    default:
-                        setMessage(error.message || "An unexpected error occurred. Please try again.");
-                }
             });
     };
 

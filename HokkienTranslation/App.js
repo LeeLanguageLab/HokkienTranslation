@@ -27,6 +27,8 @@ import FlashcardFeedback from "./screens/Notifications/NotificationFeedbackScree
 import {Audio} from 'expo-av';
 import {Platform} from "react-native";
 import {ToastProvider} from "react-native-toast-notifications";
+import BadgeScreen from "./screens/badges/BadgeScreen";
+import writeBadges from "./backend/badges/writeBadges";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -60,6 +62,11 @@ const HomeStack = () => {
                 name="FlashcardBox"
                 component={FlashcardBoxScreen}
                 options={{title: "Your Flashcard Learning Progress"}}
+            />
+            <Stack.Screen
+                name="BadgeScreen"
+                component={BadgeScreen}
+                options={{title: 'Badge Collection'}}
             />
         </Stack.Navigator>
     );
@@ -173,6 +180,15 @@ export default function App() {
     // console.log("Expo Push Token:", expoPushToken?.data ?? "")
     // const data = JSON.stringify(notification, undefined, 2);
     // console.log("Notification Data:", data)
+
+    // // For Writing new badges
+    // useEffect(() => {
+    //     writeBadges().then(() => {
+    //         console.log("Badges written successfully");
+    //     }, (error) => {
+    //         console.error("Error writing badges:", error);
+    //     });
+    // }, []);
 
     // For adding audio
     useEffect(() => {

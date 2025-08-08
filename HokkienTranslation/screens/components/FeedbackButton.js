@@ -4,7 +4,7 @@ import {Button, IconButton} from "native-base";
 import {Linking} from "react-native";
 import {useTheme} from "../context/ThemeProvider";
 
-const FeedbackButton = ({iconOnly = false}) => {
+const FeedbackButton = ({iconOnly = true}) => {
     const {themes, theme} = useTheme();
     const colors = themes[theme];
     const [isPressed, setIsPressed] = useState(false);
