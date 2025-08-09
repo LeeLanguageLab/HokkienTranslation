@@ -3,7 +3,7 @@ import {Box, Text, VStack, FormControl, Input, Button, Image} from "native-base"
 import {ImageBackground, Animated} from "react-native";
 import {LinearGradient} from 'expo-linear-gradient';
 import {CommonActions} from "@react-navigation/native";
-import {createUserWithEmailAndPassword} from "firebase/auth";
+import {createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import {auth, db} from "../backend/database/Firebase";
 import {useTheme} from "./context/ThemeProvider";
 import {initializeLeitnerBoxesForUser, initializePointLevelProgress} from "../backend/database/LeitnerSystemHelpers.js";
@@ -43,6 +43,7 @@ export default function RegisterScreen({navigation}) {
             
             // Save displayName to Auth
             await updateProfile(userCredential.user, { displayName: username });
+            await userCredential.user.reload();
             console.log("Auth displayName set:", username);
 
             // Create Firestore user doc with username
