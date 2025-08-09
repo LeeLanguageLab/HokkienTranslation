@@ -41,7 +41,7 @@ const Badge = ({
             uncommon: ['#10b981', '#34d399'],
             rare: ['#3b82f6', '#60a5fa'],
             epic: ['#8b5cf6', '#a78bfa'],
-            legendary: ['#f59e0b', '#fbbf24']
+            legendary: ['#f59e0b', '#fbbf24']    // There are no badges with this rarity in the current data
         };
         return rarityColors[rarity] || rarityColors.common;
     };
@@ -53,7 +53,7 @@ const Badge = ({
             daily_streak: '🔥',
             high_score: '⭐',
             deck_completion: '📚',
-            speed: '⚡',
+            speed: '⚡',         // Speed and below are not in the current data
             social: '🤝',
             persistence: '💪',
             general: '🏆'
