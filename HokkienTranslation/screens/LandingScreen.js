@@ -3,6 +3,7 @@ import { ImageBackground, Pressable, Animated } from "react-native";
 import { Box, Image, Text, VStack } from "native-base";
 import { CommonActions } from "@react-navigation/native";
 import { useTheme } from "./context/ThemeProvider";
+import { auth } from "../backend/database/Firebase";
 
 const LandingPage = ({ navigation }) => {
   const { theme, themes } = useTheme();
@@ -21,7 +22,30 @@ const LandingPage = ({ navigation }) => {
   return (
     <Pressable
       style={{ flex: 1 }}
-      onPress={() => navigation.navigate("Login")}
+      onPress={() => {
+        const user = auth.currentUser;
+        if (user && user.displayName) {
+          // User is logged in and has username
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: "Main" }],
+            })
+          );
+        } else if (user) {
+          // Logged in but no username yet
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: "Username" }],
+            })
+          );
+        } else {
+          // Not logged in
+          navigation.navigate("Login");
+        }
+      }}
+      // onPress={() => navigation.navigate("Login")}
       // onPress={() =>
       //   navigation.dispatch(
       //     CommonActions.reset({

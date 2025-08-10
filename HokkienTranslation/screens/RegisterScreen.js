@@ -3,13 +3,15 @@ import {Box, Text, VStack, FormControl, Input, Button, Image} from "native-base"
 import {ImageBackground, Animated} from "react-native";
 import {LinearGradient} from 'expo-linear-gradient';
 import {CommonActions} from "@react-navigation/native";
-import {createUserWithEmailAndPassword} from "firebase/auth";
-import {auth} from "../backend/database/Firebase";
+import {createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import {auth, db} from "../backend/database/Firebase";
 import {useTheme} from "./context/ThemeProvider";
 import {initializeLeitnerBoxesForUser, initializePointLevelProgress} from "../backend/database/LeitnerSystemHelpers.js";
 import {useRegisterAndStoreToken} from "../backend/notifications/RegisterAndStoreToken";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 
 export default function RegisterScreen({navigation}) {
+    const [username, setUsername] = useState("");
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [passwordConfirmation, setPasswordConfirmation] = useState('');
@@ -32,8 +34,29 @@ export default function RegisterScreen({navigation}) {
             setMessage("Passwords don't match!");
             return;
         }
+        if (!username.trim()) {
+            setMessage("Username is required!");
+            return;
+        }
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            
+            // Save displayName to Auth
+            await updateProfile(userCredential.user, { displayName: username });
+            await userCredential.user.reload();
+            console.log("Auth displayName set:", username);
+
+            // Create Firestore user doc with username
+            const userDocRef = doc(db, "users", userCredential.user.uid);
+            await setDoc(userDocRef, {
+                uid: userCredential.user.uid,
+                email: userCredential.user.email,
+                username: username,
+                createdAt: serverTimestamp(),
+            });
+            console.log("Firestore user doc created with username:", username);
+
+            
             setMessage("Successfully registered!");
             const token = useRegisterAndStoreToken(userCredential);
             console.warn("ExpoPushToken at login:", token);
@@ -94,6 +117,19 @@ export default function RegisterScreen({navigation}) {
                         <Text fontSize="2xl" fontWeight="bold" color={colors.primary}>
                             Register Now
                         </Text>
+
+                        {/*Username Field */}
+                        <FormControl>
+                        <FormControl.Label>Username</FormControl.Label>
+                        <Input
+                            value={username}
+                            onChangeText={setUsername}
+                            placeholder="Enter your username"
+                            bg={colors.surface}
+                            _focus={{ borderColor: colors.primary }}
+                        />
+                        </FormControl>
+
                         <FormControl>
                             <FormControl.Label>Email</FormControl.Label>
                             <Input
