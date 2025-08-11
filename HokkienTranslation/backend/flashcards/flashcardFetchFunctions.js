@@ -3,7 +3,7 @@ import {addDoc} from "firebase/firestore";
 import {updateDoc} from "firebase/firestore";
 import {query, where} from "firebase/firestore";
 import {doc, setDoc} from "firebase/firestore";
-import {db} from "./Firebase";
+import {db} from "../database/Firebase";
 
 
 export async function getFlashcardListFromFlashcardListName(flashcardListName) {
