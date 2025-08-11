@@ -34,6 +34,7 @@ import SettingsButton from "./screens/components/SettingsButton";
 import AnalyticsScreen from "./screens/AnalyticsScreen";
 import SignOut from "./screens/components/Signout";
 import UsernameScreen from "./screens/UsernameScreen";
+import FlashcardBoxScreen from "./screens/FlashcardBoxScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -217,14 +218,9 @@ const AppContent = () => {
     }
 
     return (
-        <NativeBaseProvider>
-            <NavigationContainer>
-                <Stack.Navigator
-                    initialRouteName="Landing"
-                    screenOptions={{
-                        headerShown: false,
-                    }}
-                >
+        // <NativeBaseProvider>
+        //     <NavigationContainer>
+                <Stack.Navigator initialRouteName="Landing" screenOptions={{ headerShown: false,}}>
                     <Stack.Screen name="Landing" component={LandingPage}/>
                     <Stack.Screen name="Username" component={UsernameScreen}/>
                     <Stack.Screen name="Main" component={MainTabNavigator}/>
@@ -243,8 +239,8 @@ const AppContent = () => {
                         }}
                     />
                 </Stack.Navigator>
-            </NavigationContainer>
-        </NativeBaseProvider>
+        //     </NavigationContainer>
+        // </NativeBaseProvider>
     );
 };
 

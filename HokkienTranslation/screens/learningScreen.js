@@ -14,7 +14,7 @@ import {doc, getDoc} from "firebase/firestore";
 import getCurrentUser from "../backend/database/GetCurrentUser";
 import {Box, Button, Center, HStack, VStack,} from "native-base";
 import {useTheme} from "./context/ThemeProvider";
-import {FSRS, FSRSParameters, generatorParameters,} from "ts-fsrs";
+import {FSRS, generatorParameters, Rating} from "ts-fsrs";
 import {createExtendedCard} from './components/extendedCard';
 import {useLanguage} from "./context/LanguageProvider";
 import TextToSpeech from "./components/TextToSpeech";
@@ -296,71 +296,167 @@ const LearningScreen = ({route}) => {
 
 
     }
+    // useEffect(() => {
+    //         const fetchData = async () => {
+    //             setLoading(true);
+    //             try{
+
+    //             }catch (e) {
+    //                 console.error("fetchData error:", e);
+    //                } finally {
+    //                 setLoading(false);
+    //             }
+
+    //             const flashcardsList = await fetchFlashcards();
+    //             var allFlashcardsX = flashcardsList;
+    //             setAllFlashcards(allFlashcardsX);
+    //             const schedulingCards = await fetchSchedulingCards();
+
+    //             console.log(schedulingCards);
+    //             if (!schedulingCards.exists) {
+
+    //                 const [fsrsScheduler, schedulingCardList] = await initalizeScheduler(flashcardsList);
+
+    //                 setFSRSscheduler(fsrsScheduler);
+    //                 setSchedulingCardList(schedulingCardList);
+    //                 // var FSRSParameters = generatorParameters(fsrsScheduler);
+    //                 console.log(schedulingCardList);
+    //                 await putSchedulingCards(db, currentUser, schedulingCardList, flashcardListName);
+    //                 // await putFSRSParameters(db, currentUser, FSRSParameters);
+    //                 const paramToSave = generatorParameters(fsrsScheduler);
+    //                 await putFSRSParameters(db, currentUser, paramToSave);
+
+    //                 const [newCards, againCards, reviewCards] = getScheduledCards(schedulingCardList);
+
+    //                 setNewCards(newCards.slice(0, 20));
+    //                 setReviewCards(reviewCards);
+    //                 setAgainCards(againCards);
+
+    //                 const flashcardsX = flashcardMapping(newCards[0], allFlashcardsX);
+    //                 setCurCard(flashcardsX);
+
+    //                 //console.log(   flashcardsX);
+
+    //                 // initalizeScheduler(currentUser);
+    //                 setLoading(false);
+    //             } else {
+    //                 setSchedulingCardList(schedulingCards.cards);
+    //                 const schedulingParameters = await getFSRSParameters(db, currentUser);
+    //                 // console.log(schedulingParameters);
+
+
+    //                 const fsrsScheduler = new FSRS(schedulingParameters);
+    //                 setFSRSscheduler(fsrsScheduler);
+
+    //                 const [newCards, againCards, reviewCards] = getScheduledCards(schedulingCards.cards);
+
+    //                 setNewCards(newCards.slice(0, 20));
+    //                 setReviewCards(reviewCards);
+    //                 setAgainCards(againCards);
+
+    //                 const flashcardsX = flashcardMapping(newCards[0], allFlashcardsX);
+    //                 setCurCard(flashcardsX);
+
+    //                 //console.log(   flashcardsX);
+
+    //                 // initalizeScheduler(currentUser);
+    //                 setLoading(false);
+    //             }
+
+
+    //         };
+    //         fetchUser();
+    //         fetchData();
+    //     }
+    //     , [])
     useEffect(() => {
-            const fetchData = async () => {
-                setLoading(true);
+  let isMounted = true; // avoid state updates after unmount
 
+  (async () => {
+    if (!isMounted) return;
+    setLoading(true);
+    try {
+      // 1) Ensure user is fetched first (to use currentUser below)
+      await fetchUser();
 
-                const flashcardsList = await fetchFlashcards();
-                var allFlashcardsX = flashcardsList;
-                setAllFlashcards(allFlashcardsX);
-                const schedulingCards = await fetchSchedulingCards();
+      // 2) Fetch flashcards and scheduling data
+      const flashcardsList = await fetchFlashcards();
+      if (!isMounted) return;
+      setAllFlashcards(flashcardsList);
 
-                console.log(schedulingCards);
-                if (!schedulingCards.exists) {
+      const schedulingCards = await fetchSchedulingCards();
 
-                    const [fsrsScheduler, schedulingCardList] = await initalizeScheduler(flashcardsList);
+      if (!schedulingCards?.exists) {
+        // First-time init
+        const [fsrsScheduler, schedulingCardList] = await initalizeScheduler(flashcardsList);
+        if (!isMounted) return;
 
-                    setFSRSscheduler(fsrsScheduler);
-                    setSchedulingCardList(schedulingCardList);
-                    var FSRSParameters = generatorParameters(fsrsScheduler);
-                    console.log(schedulingCardList);
-                    await putSchedulingCards(db, currentUser, schedulingCardList, flashcardListName);
-                    await putFSRSParameters(db, currentUser, FSRSParameters);
+        setFSRSscheduler(fsrsScheduler);
+        setSchedulingCardList(schedulingCardList);
 
-                    const [newCards, againCards, reviewCards] = getScheduledCards(schedulingCardList);
+        // persist data
+        await putSchedulingCards(db, currentUser, schedulingCardList, flashcardListName);
+        const paramsToSave = generatorParameters(fsrsScheduler);
+        await putFSRSParameters(db, currentUser, paramsToSave);
 
-                    setNewCards(newCards.slice(0, 20));
-                    setReviewCards(reviewCards);
-                    setAgainCards(againCards);
+        // split queues
+        const [newC, againC, reviewC] = getScheduledCards(schedulingCardList);
+        if (!isMounted) return;
+        setNewCards(newC.slice(0, 20));
+        setAgainCards(againC);
+        setReviewCards(reviewC);
 
-                    const flashcardsX = flashcardMapping(newCards[0], allFlashcardsX);
-                    setCurCard(flashcardsX);
-
-                    //console.log(   flashcardsX);
-
-                    // initalizeScheduler(currentUser);
-                    setLoading(false);
-                } else {
-                    setSchedulingCardList(schedulingCards.cards);
-                    const schedulingParameters = await getFSRSParameters(db, currentUser);
-                    // console.log(schedulingParameters);
-
-
-                    const fsrsScheduler = new FSRS(schedulingParameters);
-                    setFSRSscheduler(fsrsScheduler);
-
-                    const [newCards, againCards, reviewCards] = getScheduledCards(schedulingCards.cards);
-
-                    setNewCards(newCards.slice(0, 20));
-                    setReviewCards(reviewCards);
-                    setAgainCards(againCards);
-
-                    const flashcardsX = flashcardMapping(newCards[0], allFlashcardsX);
-                    setCurCard(flashcardsX);
-
-                    //console.log(   flashcardsX);
-
-                    // initalizeScheduler(currentUser);
-                    setLoading(false);
-                }
-
-
-            };
-            fetchUser();
-            fetchData();
+        // pick first due card safely
+        if (newC.length > 0) {
+          setCurCard(flashcardMapping(newC[0], flashcardsList));
+          setCurrentList("New");
+        } else if (againC.length > 0) {
+          setCurCard(flashcardMapping(againC[0], flashcardsList));
+          setCurrentList("Again");
+        } else if (reviewC.filter(c => c?.due <= new Date()).length > 0) {
+          setCurCard(flashcardMapping(reviewC[0], flashcardsList));
+          setCurrentList("Review");
+        } else {
+          setCurCard(null);
         }
-        , [])
+      } else {
+        // Returning user
+        if (!isMounted) return;
+        setSchedulingCardList(schedulingCards.cards);
+
+        const schedulingParameters = await getFSRSParameters(db, currentUser);
+        const fsrsScheduler = new FSRS(schedulingParameters);
+        if (!isMounted) return;
+        setFSRSscheduler(fsrsScheduler);
+
+        const [newC, againC, reviewC] = getScheduledCards(schedulingCards.cards);
+        setNewCards(newC.slice(0, 20));
+        setAgainCards(againC);
+        setReviewCards(reviewC);
+
+        if (newC.length > 0) {
+          setCurCard(flashcardMapping(newC[0], flashcardsList));
+          setCurrentList("New");
+        } else if (againC.length > 0) {
+          setCurCard(flashcardMapping(againC[0], flashcardsList));
+          setCurrentList("Again");
+        } else if (reviewC.filter(c => c?.due <= new Date()).length > 0) {
+          setCurCard(flashcardMapping(reviewC[0], flashcardsList));
+          setCurrentList("Review");
+        } else {
+          setCurCard(null);
+        }
+      }
+    } catch (e) {
+      console.error("fetchData error:", e);
+    } finally {
+      if (isMounted) setLoading(false);
+    }
+  })();
+
+  return () => { isMounted = false; };
+  // include dependencies that can change this screen's data
+}, [flashcardListName]);
 
 
     if (loading) {
@@ -588,7 +684,7 @@ async function initalizeScheduler(flashcardList) {
     });
 
     // create a new scheduler object
-    var scheduler = new FSRS(FSRSParameters, generatorParameters);
+    var scheduler = new FSRS();
 
 
     const dueCards = cardList.filter(card => card.due <= new Date());
