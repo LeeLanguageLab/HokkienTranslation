@@ -1,4 +1,5 @@
 import axios from "axios";
+import MixpanelService from "./Mixpanel";
 // import { TRANSLATION_API_URL } from "@env";
 
 // const apiUrl = TRANSLATION_API_URL;
@@ -9,6 +10,9 @@ const apiUrl = process.env.TRANSLATION_API_URL;
 // outputLanguage = "ZH" (Chinese) / "EN" (English) / "HAN" (Hokkien)
 const fetchTranslation = async (query, outputLanguage = "HAN") => {
   if (!query) return null;
+  console.warn("fetchTranslation called with:", query, outputLanguage);
+
+  await MixpanelService.initialize();
 
   try {
     const requestData = {
@@ -32,6 +36,13 @@ const fetchTranslation = async (query, outputLanguage = "HAN") => {
       return translationText;
     }
   } catch (error) {
+    MixpanelService.track("Error in Translation", {
+      error: error.message,
+      query,
+      outputLanguage,
+      type: "error"
+    });
+    MixpanelService.flush();
     console.error("Error:", error);
     throw new Error("Error in translation.");
   }

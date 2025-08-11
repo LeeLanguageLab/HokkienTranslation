@@ -16,6 +16,7 @@ import {StreakDisplay} from "./StreaksAndLevelProgress/StreakDisplay";
 import {Platform} from "react-native";
 import SettingsButton from "./components/SettingsButton";
 
+import MixpanelService from "../backend/API/Mixpanel";
 
 export default function HomeScreen({navigation}) {
     const [queryText, setQueryText] = useState("");
@@ -23,6 +24,7 @@ export default function HomeScreen({navigation}) {
     const {theme, themes} = useTheme();
     const colors = themes[theme];
     const [userCred, setUserCred] = useState(null);
+
 
     const {
         scheduleInactivityReminder,
@@ -40,7 +42,17 @@ export default function HomeScreen({navigation}) {
                 console.error("Error updating streak:", error);
             }
         };
+        const initializeMixpanel = async () => {
+            try {
+                await MixpanelService.initialize();
+                MixpanelService.track("Logged In");
+                MixpanelService.flush();
+            } catch (error) {
+                console.error("Mixpanel initialization error:", error);
+            }
+        };
 
+        initializeMixpanel();
         updateStreak();
     }, []);
 

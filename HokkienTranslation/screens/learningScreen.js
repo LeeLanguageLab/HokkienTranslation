@@ -19,6 +19,8 @@ import {createExtendedCard} from './components/extendedCard';
 import {useLanguage} from "./context/LanguageProvider";
 import TextToSpeech from "./components/TextToSpeech";
 import {getRomanization} from "../backend/flashcards/flashcardRomanizationFunctions";
+import {fetchRomanizer} from "../backend/API/HokkienHanziRomanizerService";
+import MixpanelService from "../backend/API/Mixpanel";
 
 var currentUser = "";
 
@@ -50,6 +52,24 @@ const LearningScreen = ({route}) => {
     const [showAnswer, setShowAnswer] = useState(false);
 
     const flashcardListName = route.params.flashcardListName;
+
+    useEffect(() => {
+        const initializeMixpanel = async () => {
+            try {
+                await MixpanelService.initialize();
+                MixpanelService.track("Learning Screen Opened", {
+                    flashcardListName: flashcardListName,
+                });
+                MixpanelService.flush();
+            } catch (error) {
+                console.error("Mixpanel initialization error:", error);
+            }
+        }
+
+        initializeMixpanel();
+    }, [])
+
+
 
     const fetchSchedulingCards = async () => {
         try {

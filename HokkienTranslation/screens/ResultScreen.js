@@ -26,6 +26,7 @@ import {db} from "../backend/database/Firebase";
 import QuickInputWords from "./components/QuickInputWords";
 import DictToFlashcardModal from "./CRUD flashcard modals/DictToFlashcard";
 import getCurrentUser from "../backend/database/GetCurrentUser";
+import MixpanelService from "../backend/API/Mixpanel";
 
 const TextToImage = ({imageUrl}) => {
     if (!imageUrl) {
@@ -64,6 +65,20 @@ const ResultScreen = ({route}) => {
     const [feedbackErrorMessage, setFeedbackErrorMessage] = useState(null);
     const [dismissedError, setDismissedError] = useState(null);
     const [openModal, setOpenModal] = useState(false);
+
+    useEffect(() => {
+        const initializeMixpanel = async () => {
+            try {
+                await MixpanelService.initialize();
+                MixpanelService.track("Result Screen Viewed", {query});
+                MixpanelService.flush();
+            } catch (error) {
+                console.error("Mixpanel initialization error:", error);
+            }
+        }
+
+        initializeMixpanel();
+    }, []);
 
     const feedbackWords = {
         thumbsUp: [

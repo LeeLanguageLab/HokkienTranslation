@@ -2,8 +2,14 @@ import { updateUserStats, getUserStats } from './BadgesFunctions';
 import { checkAndUpdateStreak } from '../streaks/CheckAndUpdateStreak';
 import { evaluateAndAwardBadges } from './BadgeEvaluator';
 import {serverTimestamp} from "firebase/firestore";
+import  MixpanelService  from '../API/Mixpanel';
 
 export const recordEvent = async (userId, eventType, eventData = {}, toast = null) => {
+  await MixpanelService.initialize();
+  MixpanelService.setSuperProperties({
+    type: "Badge Tracking",
+  })
+
   try {
     // Get current stats
     const currentStats = await getUserStats(userId) || {};
@@ -20,6 +26,7 @@ export const recordEvent = async (userId, eventType, eventData = {}, toast = nul
           total_quiz_attempts: (currentStats.total_quiz_attempts || 0) + 1,
           total_quiz_completions: (currentStats.total_quiz_completions || 0) + 1
         };
+        MixpanelService.track('Quiz Completed')
         break;
 
       case 'QUIZ_ATTEMPTED':
@@ -27,6 +34,7 @@ export const recordEvent = async (userId, eventType, eventData = {}, toast = nul
           ...statsUpdate,
           total_quiz_attempts: (currentStats.total_quiz_attempts || 0) + 1
         };
+        MixpanelService.track('Quiz Attempted')
         break;
 
       case 'LEVEL_COMPLETED':
@@ -34,6 +42,7 @@ export const recordEvent = async (userId, eventType, eventData = {}, toast = nul
           ...statsUpdate,
           total_level_completions: (currentStats.total_level_completions || 0) + 1
         };
+        MixpanelService.track('Level Completed')
         break;
 
       case 'DECK_COMPLETED':
@@ -41,6 +50,7 @@ export const recordEvent = async (userId, eventType, eventData = {}, toast = nul
           ...statsUpdate,
           total_deck_completions: (currentStats.total_deck_completions || 0) + 1
         };
+        MixpanelService.track('Deck Completed')
         break;
 
       case 'HIGH_SCORE':
@@ -48,6 +58,7 @@ export const recordEvent = async (userId, eventType, eventData = {}, toast = nul
           ...statsUpdate,
           highest_quiz_score: Math.max(eventData.score || 0, currentStats.highest_quiz_score || 0)
         };
+        MixpanelService.track('High Score', { score: eventData.score });
         break;
 
       default:
