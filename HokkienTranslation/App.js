@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import {useEffect} from "react";
 import {NavigationContainer} from "@react-navigation/native";
 import {NativeBaseProvider} from "native-base";
 import {createNativeStackNavigator} from "@react-navigation/native-stack";
@@ -14,7 +14,6 @@ import FlashcardCategory from "./screens/FlashcardCategory";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import ForgetPasswordScreen from "./screens/ForgetPasswordScreen";
-import FlashcardBoxScreen from "./screens/FlashcardBoxScreen";
 import ThemeProvider, {useTheme} from "./screens/context/ThemeProvider";
 import {LanguageProvider} from "./screens/context/LanguageProvider";
 import {ComponentVisibilityProvider} from "./screens/context/ComponentVisibilityContext";
@@ -38,7 +37,6 @@ import UsernameScreen from "./screens/UsernameScreen";
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
-
 
 const HomeStack = () => {
     const {themes, theme} = useTheme();
@@ -96,11 +94,33 @@ const FlashcardStack = () => {
             <Stack.Screen name="Category" component={FlashcardCategory}/>
             <Stack.Screen name="Flashcard" component={FlashcardScreen}/>
             <Stack.Screen name="Quiz" component={QuizScreen}/>
-            <Stack.Screen name="FlashcardAdd" component={FlashcardAdd} options={{title: "Add New Flashcard Deck"}}/>
-            <Stack.Screen name="FlashcardStudy" component={LearningScreen} options={{title: "Study Flashcards"}}/>
+            <Stack.Screen name="FlashcardAdd" component={FlashcardAdd}/>
+            <Stack.Screen name="FlashcardStudy" component={LearningScreen}/>
         </Stack.Navigator>
     );
 };
+
+// const LearningStack = () => {
+//     const {themes, theme} = useTheme();
+//     const colors = themes[theme];
+//
+//     return (
+//         <Stack.Navigator
+//             initialRouteName="Learning"
+//             screenOptions={{
+//                 headerStyle: {backgroundColor: colors.header},
+//                 headerTitleStyle: {fontSize: 25, color: colors.onSurface},
+//                 headerTitleAlign: "center",
+//                 headerTintColor: colors.onSurface,
+//                 headerRight: () => <FeedbackButton/>,
+//             }}
+//         >
+//             <Stack.Screen name="FlashcardStudy" component={LearningScreen}/>
+//         </Stack.Navigator>
+//     );
+//
+//
+// }
 
 const AnalyticsStack = () => {
     const {themes, theme} = useTheme();
@@ -198,30 +218,32 @@ const AppContent = () => {
 
     return (
         <NativeBaseProvider>
-            <Stack.Navigator
-                initialRouteName="Landing"
-                screenOptions={{
-                    headerShown: false,
-                }}
-            >
-                <Stack.Screen name="Landing" component={LandingPage}/>
-                <Stack.Screen name="Username" component={UsernameScreen}/>
-                <Stack.Screen name="Main" component={MainTabNavigator}/>
-                <Stack.Screen name="Login" component={LoginScreen}/>
-                <Stack.Screen name="Register" component={RegisterScreen}/>
-                <Stack.Screen
-                    name="ForgetPassword"
-                    component={ForgetPasswordScreen}
-                />
-                <Stack.Screen
-                    name="FlashcardFeedback"
-                    component={FlashcardFeedback}
-                    options={{
-                        headerShown: true,
-                        title: 'Flashcard Result'
+            <NavigationContainer>
+                <Stack.Navigator
+                    initialRouteName="Landing"
+                    screenOptions={{
+                        headerShown: false,
                     }}
-                />
-            </Stack.Navigator>
+                >
+                    <Stack.Screen name="Landing" component={LandingPage}/>
+                    <Stack.Screen name="Username" component={UsernameScreen}/>
+                    <Stack.Screen name="Main" component={MainTabNavigator}/>
+                    <Stack.Screen name="Login" component={LoginScreen}/>
+                    <Stack.Screen name="Register" component={RegisterScreen}/>
+                    <Stack.Screen
+                        name="ForgetPassword"
+                        component={ForgetPasswordScreen}
+                    />
+                    <Stack.Screen
+                        name="FlashcardFeedback"
+                        component={FlashcardFeedback}
+                        options={{
+                            headerShown: true,
+                            title: 'Flashcard Result'
+                        }}
+                    />
+                </Stack.Navigator>
+            </NavigationContainer>
         </NativeBaseProvider>
     );
 };

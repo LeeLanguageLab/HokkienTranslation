@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useRef} from "react";
 import {Box, Text, VStack, FormControl, Input, Button, Image} from "native-base";
-import {ImageBackground, Animated} from "react-native";
+import {ImageBackground, Animated, Platform} from "react-native";
 import {LinearGradient} from 'expo-linear-gradient';
 import {CommonActions} from "@react-navigation/native";
 import {createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
@@ -40,7 +40,7 @@ export default function RegisterScreen({navigation}) {
         }
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            
+
             // Save displayName to Auth
             await updateProfile(userCredential.user, { displayName: username });
             await userCredential.user.reload();
@@ -56,11 +56,13 @@ export default function RegisterScreen({navigation}) {
             });
             console.log("Firestore user doc created with username:", username);
 
-            
-            setMessage("Successfully registered!");
-            const token = useRegisterAndStoreToken(userCredential);
-            console.warn("ExpoPushToken at login:", token);
 
+            setMessage("Successfully registered!")
+
+            if (Platform.OS === 'android') {
+                const token = useRegisterAndStoreToken(userCredential);
+                console.warn("ExpoPushToken at login:", token);
+            } // Not sure if this is needed here, as it is already in home screen but keeping it for now
             await initializePointLevelProgress(userCredential.user.email);
             console.log("PointLevelProgress initialized for ", userCredential.user.email);
 
