@@ -23,6 +23,7 @@ import {fetchRomanizer} from "../backend/API/HokkienHanziRomanizerService";
 import MixpanelService from "../backend/API/Mixpanel";
 import {recordDeckCompletion} from "../backend/badges/EventTracker";
 import {useToast} from "react-native-toast-notifications";
+import getCurrentUserActual from "../backend/database/GetCurrentUserActual";
 
 var currentUser = "";
 
@@ -173,6 +174,7 @@ const LearningScreen = ({route}) => {
             const user = await getCurrentUser();
             currentUser = user;
             // console.log("Current User: ", currentUser);
+
         } catch (error) {
             // console.error("Error fetching user: ", error);
         }
@@ -284,7 +286,8 @@ const LearningScreen = ({route}) => {
                 setCurCard(null);
 
                 if (sessionHasCards) {
-                    await recordDeckCompletion(currentUser, flashcardListName, toast);
+                    const userActual = await getCurrentUserActual();
+                    await recordDeckCompletion(userActual.uid, flashcardListName, toast);
                     setSessionHasCards(false); // reset flag so reopening doesn't trigger again
                 }
             }
@@ -433,7 +436,8 @@ const LearningScreen = ({route}) => {
                         setCurCard(null);
 
                         if (sessionHasCards) {
-                            await recordDeckCompletion(currentUser, flashcardListName, toast);
+                            const userActual= await getCurrentUserActual();
+                            await recordDeckCompletion(userActual.uid, flashcardListName, toast);
                             setSessionHasCards(false); // reset flag so reopening doesn't trigger again
                         }
                     }
