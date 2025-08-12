@@ -21,6 +21,9 @@ import TextToSpeech from "./components/TextToSpeech";
 import {getRomanization} from "../backend/flashcards/flashcardRomanizationFunctions";
 import {fetchRomanizer} from "../backend/API/HokkienHanziRomanizerService";
 import MixpanelService from "../backend/API/Mixpanel";
+import {recordDeckCompletion} from "../backend/badges/EventTracker";
+import {useToast} from "react-native-toast-notifications";
+import getCurrentUserActual from "../backend/database/GetCurrentUserActual";
 
 var currentUser = "";
 
@@ -50,6 +53,8 @@ const LearningScreen = ({route}) => {
     const [reviewCards, setReviewCards] = useState([]);
     const [currentList, setCurrentList] = useState("New");
     const [showAnswer, setShowAnswer] = useState(false);
+    const [sessionHasCards, setSessionHasCards] = useState(false);
+    const toast = useToast();
 
     const flashcardListName = route.params.flashcardListName;
 
@@ -68,7 +73,6 @@ const LearningScreen = ({route}) => {
 
         initializeMixpanel();
     }, [])
-
 
 
     const fetchSchedulingCards = async () => {
@@ -170,13 +174,14 @@ const LearningScreen = ({route}) => {
             const user = await getCurrentUser();
             currentUser = user;
             // console.log("Current User: ", currentUser);
+
         } catch (error) {
             // console.error("Error fetching user: ", error);
         }
     };
 
 
-    const handleChoice = (number) => {
+    const handleChoice = async (number) => {
 
         var choice = choices[number];
         // get flashcard from schedulingcardList by flashcard ID
@@ -201,12 +206,12 @@ const LearningScreen = ({route}) => {
 
         // update the card in the database
         // console.log(currentUser);
-        updateOneSchedulingCard(db, currentUser, updatedcard, flashcardListName);
+        await updateOneSchedulingCard(db, currentUser, updatedcard, flashcardListName);
 
 
         var cardlog = futurecards[number + 1].log
         // console.log("Card Log:", cardlog);
-        saveReviewInstance(db, currentUser, cardlog, flashcardListName);
+        await saveReviewInstance(db, currentUser, cardlog, flashcardListName);
 
         var newCardsX = newCards;
         var reviewCardsX = reviewCards;
@@ -270,15 +275,21 @@ const LearningScreen = ({route}) => {
                 setCurCard(newF);
                 setCurrentList("Review");
             } else if (againCardsX.length > 0) {
-                // if there are no more cards, set the set the flashcards to again, set the currentList to again
+                // if there are no more cards, set the flashcards to again, set the currentList to again
                 console.log("Again Cards 2.5:", againCardsX);
                 var newF = flashcardMapping(againCardsX[0], allFlashcards);
                 console.log("Again Cards 3:", againCardsX);
                 setCurCard(newF);
                 setCurrentList("Again");
             } else {
-                // if there are no more cards, set the set the flashcards to empty
+                // if there are no more cards, set the flashcards to empty
                 setCurCard(null);
+
+                if (sessionHasCards) {
+                    const userActual = await getCurrentUserActual();
+                    await recordDeckCompletion(userActual.uid, flashcardListName, toast);
+                    setSessionHasCards(false); // reset flag so reopening doesn't trigger again
+                }
             }
 
 
@@ -370,93 +381,112 @@ const LearningScreen = ({route}) => {
     //     }
     //     , [])
     useEffect(() => {
-  let isMounted = true; // avoid state updates after unmount
+        let isMounted = true; // avoid state updates after unmount
 
-  (async () => {
-    if (!isMounted) return;
-    setLoading(true);
-    try {
-      // 1) Ensure user is fetched first (to use currentUser below)
-      await fetchUser();
+        (async () => {
+            if (!isMounted) return;
+            setLoading(true);
+            try {
+                // 1) Ensure user is fetched first (to use currentUser below)
+                await fetchUser();
 
-      // 2) Fetch flashcards and scheduling data
-      const flashcardsList = await fetchFlashcards();
-      if (!isMounted) return;
-      setAllFlashcards(flashcardsList);
+                // 2) Fetch flashcards and scheduling data
+                const flashcardsList = await fetchFlashcards();
+                if (!isMounted) return;
+                setAllFlashcards(flashcardsList);
 
-      const schedulingCards = await fetchSchedulingCards();
+                const schedulingCards = await fetchSchedulingCards();
 
-      if (!schedulingCards?.exists) {
-        // First-time init
-        const [fsrsScheduler, schedulingCardList] = await initalizeScheduler(flashcardsList);
-        if (!isMounted) return;
+                if (!schedulingCards?.exists) {
+                    // First-time init
+                    const [fsrsScheduler, schedulingCardList] = await initalizeScheduler(flashcardsList);
+                    if (!isMounted) return;
 
-        setFSRSscheduler(fsrsScheduler);
-        setSchedulingCardList(schedulingCardList);
+                    setFSRSscheduler(fsrsScheduler);
+                    setSchedulingCardList(schedulingCardList);
 
-        // persist data
-        await putSchedulingCards(db, currentUser, schedulingCardList, flashcardListName);
-        const paramsToSave = generatorParameters(fsrsScheduler);
-        await putFSRSParameters(db, currentUser, paramsToSave);
+                    // persist data
+                    await putSchedulingCards(db, currentUser, schedulingCardList, flashcardListName);
+                    const paramsToSave = generatorParameters(fsrsScheduler);
+                    await putFSRSParameters(db, currentUser, paramsToSave);
 
-        // split queues
-        const [newC, againC, reviewC] = getScheduledCards(schedulingCardList);
-        if (!isMounted) return;
-        setNewCards(newC.slice(0, 20));
-        setAgainCards(againC);
-        setReviewCards(reviewC);
+                    // split queues
+                    const [newC, againC, reviewC] = getScheduledCards(schedulingCardList);
+                    if (newC.length > 0 || againC.length > 0 || reviewC.length > 0) {
+                        setSessionHasCards(true);
+                    } else {
+                        setSessionHasCards(false);
+                    }
+                    if (!isMounted) return;
+                    setNewCards(newC.slice(0, 20));
+                    setAgainCards(againC);
+                    setReviewCards(reviewC);
 
-        // pick first due card safely
-        if (newC.length > 0) {
-          setCurCard(flashcardMapping(newC[0], flashcardsList));
-          setCurrentList("New");
-        } else if (againC.length > 0) {
-          setCurCard(flashcardMapping(againC[0], flashcardsList));
-          setCurrentList("Again");
-        } else if (reviewC.filter(c => c?.due <= new Date()).length > 0) {
-          setCurCard(flashcardMapping(reviewC[0], flashcardsList));
-          setCurrentList("Review");
-        } else {
-          setCurCard(null);
-        }
-      } else {
-        // Returning user
-        if (!isMounted) return;
-        setSchedulingCardList(schedulingCards.cards);
+                    // pick first due card safely
+                    if (newC.length > 0) {
+                        setCurCard(flashcardMapping(newC[0], flashcardsList));
+                        setCurrentList("New");
+                    } else if (againC.length > 0) {
+                        setCurCard(flashcardMapping(againC[0], flashcardsList));
+                        setCurrentList("Again");
+                    } else if (reviewC.filter(c => c?.due <= new Date()).length > 0) {
+                        setCurCard(flashcardMapping(reviewC[0], flashcardsList));
+                        setCurrentList("Review");
+                    } else {
+                        setCurCard(null);
 
-        const schedulingParameters = await getFSRSParameters(db, currentUser);
-        const fsrsScheduler = new FSRS(schedulingParameters);
-        if (!isMounted) return;
-        setFSRSscheduler(fsrsScheduler);
+                        if (sessionHasCards) {
+                            const userActual= await getCurrentUserActual();
+                            await recordDeckCompletion(userActual.uid, flashcardListName, toast);
+                            setSessionHasCards(false); // reset flag so reopening doesn't trigger again
+                        }
+                    }
+                } else {
+                    // Returning user
+                    if (!isMounted) return;
+                    setSchedulingCardList(schedulingCards.cards);
 
-        const [newC, againC, reviewC] = getScheduledCards(schedulingCards.cards);
-        setNewCards(newC.slice(0, 20));
-        setAgainCards(againC);
-        setReviewCards(reviewC);
+                    const schedulingParameters = await getFSRSParameters(db, currentUser);
+                    const fsrsScheduler = new FSRS(schedulingParameters);
+                    if (!isMounted) return;
+                    setFSRSscheduler(fsrsScheduler);
 
-        if (newC.length > 0) {
-          setCurCard(flashcardMapping(newC[0], flashcardsList));
-          setCurrentList("New");
-        } else if (againC.length > 0) {
-          setCurCard(flashcardMapping(againC[0], flashcardsList));
-          setCurrentList("Again");
-        } else if (reviewC.filter(c => c?.due <= new Date()).length > 0) {
-          setCurCard(flashcardMapping(reviewC[0], flashcardsList));
-          setCurrentList("Review");
-        } else {
-          setCurCard(null);
-        }
-      }
-    } catch (e) {
-      console.error("fetchData error:", e);
-    } finally {
-      if (isMounted) setLoading(false);
-    }
-  })();
+                    const [newC, againC, reviewC] = getScheduledCards(schedulingCards.cards);
+                    setNewCards(newC.slice(0, 20));
+                    setAgainCards(againC);
+                    setReviewCards(reviewC);
 
-  return () => { isMounted = false; };
-  // include dependencies that can change this screen's data
-}, [flashcardListName]);
+                    if (newC.length > 0 || againC.length > 0 || reviewC.length > 0) {
+                        setSessionHasCards(true);
+                    } else {
+                        setSessionHasCards(false);
+                    }
+
+                    if (newC.length > 0) {
+                        setCurCard(flashcardMapping(newC[0], flashcardsList));
+                        setCurrentList("New");
+                    } else if (againC.length > 0) {
+                        setCurCard(flashcardMapping(againC[0], flashcardsList));
+                        setCurrentList("Again");
+                    } else if (reviewC.filter(c => c?.due <= new Date()).length > 0) {
+                        setCurCard(flashcardMapping(reviewC[0], flashcardsList));
+                        setCurrentList("Review");
+                    } else {
+                        setCurCard(null);
+                    }
+                }
+            } catch (e) {
+                console.error("fetchData error:", e);
+            } finally {
+                if (isMounted) setLoading(false);
+            }
+        })();
+
+        return () => {
+            isMounted = false;
+        };
+        // include dependencies that can change this screen's data
+    }, [flashcardListName]);
 
 
     if (loading) {
