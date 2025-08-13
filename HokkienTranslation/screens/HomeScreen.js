@@ -17,6 +17,7 @@ import {Platform} from "react-native";
 import SettingsButton from "./components/SettingsButton";
 import {useToast} from "react-native-toast-notifications";
 
+import MixpanelService from "../backend/API/Mixpanel";
 
 export default function HomeScreen({navigation}) {
     const [queryText, setQueryText] = useState("");
@@ -26,10 +27,11 @@ export default function HomeScreen({navigation}) {
     const [userCred, setUserCred] = useState(null);
     const toast = useToast();
 
-    const {
-        scheduleInactivityReminder,
-    } = useLocalNotifications();
-
+    // if (Platform.OS === "android") {
+    //     const {
+    //     scheduleInactivityReminder,
+    //     } = useLocalNotifications();
+    // }
     const [streakData, setStreakData] = useState({isNewStreak: false, streakCount: 0});
 
     // useEffect(() => {
@@ -56,6 +58,19 @@ export default function HomeScreen({navigation}) {
     //
     //     updateStreak();
     // }, []);
+    useEffect(() => {
+        const initializeMixpanel = async () => {
+            try {
+                await MixpanelService.initialize();
+                MixpanelService.track("Logged In");
+                MixpanelService.flush();
+            } catch (error) {
+                console.error("Mixpanel initialization error:", error);
+            }
+        };
+
+        initializeMixpanel();
+    }, []);
 
     useEffect(() => {
         const currentUser = auth.currentUser;
@@ -84,8 +99,7 @@ export default function HomeScreen({navigation}) {
         React.useCallback(() => {
             console.log("HomeScreen is focused, setting up inactivity reminder");
 
-            scheduleInactivityReminder(3600); // 1 hour
-
+                // scheduleInactivityReminder(3600); // 1 hour
             return () => {
                 console.log("HomeScreen is unfocused, cleaning up");
                 // TODO Maybe remove pending notifications
@@ -116,7 +130,7 @@ export default function HomeScreen({navigation}) {
 
     const handleTextChange = (text) => {
         // Reset inactivity timer when user types
-        scheduleInactivityReminder(3600);
+        // scheduleInactivityReminder(3600);
         const cleanedText = text.replace(/\n/, "");
         setQueryText(cleanedText);
     };

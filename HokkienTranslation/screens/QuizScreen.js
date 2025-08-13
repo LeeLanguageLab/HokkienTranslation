@@ -44,6 +44,7 @@ import {
 } from "../backend/database/LeitnerSystemHelpers.js";
 import {recordQuizCompletion} from "../backend/badges/EventTracker";
 import getCurrentUserActual from "../backend/database/GetCurrentUserActual";
+import MixpanelService from "../backend/API/Mixpanel";
 
 const QuizScreen = ({route}) => {
     const toast = useToast()
@@ -75,6 +76,26 @@ const QuizScreen = ({route}) => {
 
     const flashcardListName = route.params.flashcardListName;
     // console.log("QuizScreen: flashcardListName", flashcardListName);
+
+
+    useEffect(() => {
+        const initializeMixpanel = async () => {
+            try {
+                await MixpanelService.initialize();
+                MixpanelService.track("Quiz Started", {
+                    flashcardListName: flashcardListName,
+                    languages: [lang1, lang2],
+                    answerWith: answerWith,
+                    hokkienOption: hokkienOption
+                });
+                MixpanelService.flush();
+            } catch (error) {
+                console.error("Mixpanel initialization error:", error);
+            }
+        };
+
+        initializeMixpanel();
+    }, [])
 
     const translateText = async (text, language) => {
         try {

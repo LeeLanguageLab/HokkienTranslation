@@ -8,7 +8,7 @@ import {
     SafeAreaView,
     ActivityIndicator,
     RefreshControl, TouchableOpacity,
-    SectionList
+    SectionList, Platform
 } from 'react-native';
 import {useRoute} from '@react-navigation/native';
 import Badge from './Badge';
@@ -16,18 +16,47 @@ import {getBadgeScreenData} from "../../backend/badges/BadgesFunctions";
 import {useTheme} from "../context/ThemeProvider";
 import {createDynamicStyles} from "./DynamicStyles";
 import getCurrentUserActual from "../../backend/database/GetCurrentUserActual";
+import MixpanelService from "../../backend/API/Mixpanel";
+import {Dimensions} from "react-native";
 
 
 const BadgeScreen = () => {
     const route = useRoute();
-    const numColumns = 2;
+
+    const BADGE_CARD_WIDTH = 140; // Fixed width for each badge card
+    const CARD_MARGIN = 12; // Margin around each card
+    const CONTAINER_PADDING = 16; // Container padding
+
+    const screenWidth = Dimensions.get('window').width;
+    const availableWidth = screenWidth - (CONTAINER_PADDING * 2);
+    const numColumns = Math.floor(availableWidth / (BADGE_CARD_WIDTH + CARD_MARGIN));
+    const actualColumns = Math.max(numColumns, 1); // Ensure at least 1 column
+
+    // Calculate spacing to center the cards
+    const totalCardWidth = actualColumns * (BADGE_CARD_WIDTH + CARD_MARGIN);
+    const remainingSpace = availableWidth - totalCardWidth;
+    const sideMargin = Math.max(remainingSpace / 2, 0);
+
+
     const [user, setUser] = useState(null);
     useEffect(() => {
         const loadUser = async () => {
             const userActual = await getCurrentUserActual();
             setUser(userActual);
         };
+
+        const initializeMixpanel = async () => {
+            try {
+                await MixpanelService.initialize();
+                MixpanelService.track("Badge Screen Viewed", {});
+                MixpanelService.flush();
+            } catch (error) {
+                console.error("Mixpanel initialization error:", error);
+            }
+        }
+
         loadUser();
+        initializeMixpanel();
     }, []);
 
     const {themes, theme} = useTheme();
@@ -257,23 +286,70 @@ const BadgeScreen = () => {
             <View style={dynamicStyles.badgeCount}>
                 <Text style={dynamicStyles.badgeCountText}>{section.count}</Text>
             </View>
-        </View>
-    );
+        </View>)
+
+    const renderBadgeGrid = () => {
+        const badges = allBadgesData;
+        const rows = [];
+
+        for (let i = 0; i < badges.length; i += actualColumns) {
+            const row = badges.slice(i, i + actualColumns);
+            rows.push(
+                <View key={`row-${i}`} style={[dynamicStyles.gridRow, {paddingHorizontal: sideMargin}]}>
+                    {row.map((badge, index) => (
+                        <View key={badge.achievement_id || `badge-${i + index}`} style={dynamicStyles.gridItem}>
+                            <Badge
+                                badge={badge}
+                                isEarned={badge.isEarned}
+                                progress={getProgress(badge.achievement_id)}
+                                earnedDate={badge.isEarned ? getEarnedDate(badge.achievement_id) : null}
+                            />
+                        </View>
+                    ))}
+                    {/* Fill empty spaces for incomplete rows */}
+                    {Array.from({ length: actualColumns - row.length }).map((_, emptyIndex) => (
+                        <View key={`empty-${i}-${emptyIndex}`} style={dynamicStyles.gridItem} />
+                    ))}
+                </View>
+            );
+        }
+        return rows;
+    }
+
+    const renderBadgeList = () => {
+        if (Platform.OS === "web") {
+            return (
+                <ScrollView
+                    contentContainerStyle={dynamicStyles.scrollContent}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
+                    }
+                >
+                    {renderHeader()}
+                    {renderBadgeGrid()}
+                </ScrollView>
+            );
+        } else {
+            return (
+
+                <FlatList
+                    data={allBadgesData}
+                    renderItem={({item}) => renderBadgeItem({item, isEarned: item.isEarned})}
+                    keyExtractor={(item, index) => item.achievement_id || `badge-${index}`}
+                    numColumns={2}
+                    ListHeaderComponent={renderHeader}
+                    refreshControl={
+                        <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
+                    }
+                    contentContainerStyle={dynamicStyles.scrollContent}
+                    columnWrapperStyle={dynamicStyles.row}
+                />)
+        }
+    }
 
     return (
         <SafeAreaView style={dynamicStyles.container}>
-            <FlatList
-                data={allBadgesData}
-                renderItem={({item}) => renderBadgeItem({item, isEarned: item.isEarned})}
-                keyExtractor={(item, index) => item.achievement_id || `badge-${index}`}
-                numColumns={2}
-                ListHeaderComponent={renderHeader}
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh}/>
-                }
-                contentContainerStyle={dynamicStyles.scrollContent}
-                columnWrapperStyle={dynamicStyles.row}
-            />
+            {renderBadgeList()}
         </SafeAreaView>
     );
 };

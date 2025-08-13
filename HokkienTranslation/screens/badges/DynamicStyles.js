@@ -1,6 +1,20 @@
-import {StyleSheet} from "react-native";
+import {Platform, StyleSheet} from "react-native";
 
 export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleSheet.create({
+
+    gridRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 8,
+        marginBottom: 12,
+    },
+
+    gridItem: {
+        width: 140,
+        alignItems: 'center',
+        marginHorizontal: 6,
+        justifyContent: "flex-start",
+    },
     // Main Container Styles (Missing)
     container: {
         flex: 1,
@@ -180,6 +194,13 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
         elevation: 4,
         borderWidth: 1,
         borderColor: colors.outlineVariant || '#e5e7eb',
+        ...(Platform.OS === 'web' ? {
+            flex: 1,
+            minWidth: 120,
+            maxWidth: '100%'
+        } : {
+            width: 150
+        }),
         width: 150,
         height: 250,
         alignItems: 'center',
@@ -254,7 +275,6 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
         color: colors.onSurface || '#1f2937',
         textAlign: 'center',
         marginBottom: 4,
-        numberOfLines: 2,
     },
 
     badgeDescription: {
@@ -263,7 +283,6 @@ export const createDynamicStyles = (colors, rarityColors, isEarned) => StyleShee
         textAlign: 'center',
         lineHeight: 16,
         marginBottom: 6,
-        numberOfLines: 2,
     },
 
     // Progress Styles

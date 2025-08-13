@@ -18,13 +18,13 @@ const LeaderboardScreen = () => {
       try {
         const [levelsRes, streaksRes] = await Promise.all([
           fetch(`${baseUrl}leaderboard/points`),
-          fetch(`${baseUrl}leaderboard/streaks`)
+          // fetch(`${baseUrl}leaderboard/streaks`)
         ]);
         const levels = await levelsRes.json();
-        const streaks = await streaksRes.json();
+        // const streaks = await streaksRes.json();
 
         setLevelBoard(levels);
-        setStreakBoard(streaks);
+        // setStreakBoard(streaks);
       } catch (err) {
         console.error("Failed to fetch leaderboard:", err);
       } finally {
@@ -37,7 +37,7 @@ const LeaderboardScreen = () => {
   const renderItem = (item, index, icon) => (
     <View style={[styles.row, { backgroundColor: colors.surface }]}>
       <Text style={[styles.rank, { color: colors.onSurface }]}>#{index + 1}</Text>
-      <Text style={[styles.name, { color: colors.onSurface }]}>{item.username}</Text>
+      <Text style={[styles.name, { color: colors.onSurface }]}>{item.username || "Anonymous"}</Text>
       <View style={styles.metric}>
         <Ionicons name={icon} size={16} color={icon === "flame" ? "#FF6B35" : "#4ECDC4"} />
         <Text style={[styles.metricText, { color: colors.onSurface }]}>
@@ -67,7 +67,7 @@ const LeaderboardScreen = () => {
         renderItem={({ item, index }) => renderItem(item, index, "trophy")}
       />
 
-      <Heading size="md" color={colors.onSurface} mt={6} mb={2}>
+      {/* <Heading size="md" color={colors.onSurface} mt={6} mb={2}>
         Top 10 by Streak
       </Heading>
       <FlatList
@@ -75,7 +75,7 @@ const LeaderboardScreen = () => {
         keyExtractor={(item, index) => `strk-${index}`}
         scrollEnabled={false}
         renderItem={({ item, index }) => renderItem(item, index, "flame")}
-      />
+      /> */}
     </ScrollView>
   );
 };
