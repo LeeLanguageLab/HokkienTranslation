@@ -5,7 +5,7 @@ import { getAuth } from "firebase/auth";
 // Firebase Configuration
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDXUQYIqoMXKCvuC_Htz4hykUnaZI_tFPM",
+  apiKey: process.env.FIREBASE_API_KEY,
   authDomain: "hokkientranslationapp.firebaseapp.com",
   databaseURL: "https://hokkientranslationapp-default-rtdb.firebaseio.com",
   projectId: "hokkientranslationapp",

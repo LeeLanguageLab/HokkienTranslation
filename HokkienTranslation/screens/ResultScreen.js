@@ -1,27 +1,14 @@
-import React, {useState, useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import {Ionicons} from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import {
-    ScrollView,
-    VStack,
-    HStack,
-    Text,
-    Box,
-    Image,
-    IconButton,
-    View,
-    Divider,
-    Input,
-    Button,
-} from "native-base";
-import {fetchRomanizer} from "../backend/API/HokkienHanziRomanizerService";
+import {Box, Button, Divider, HStack, IconButton, Image, Input, ScrollView, Text, View, VStack,} from "native-base";
 import {generateImage} from "../backend/API/TextToImageService";
 import TextToSpeech from "./components/TextToSpeech";
 import LoadingScreen from "./LoadingScreen";
 import {CheckDatabase} from "../backend/CheckDatabase";
 import {useTheme} from "./context/ThemeProvider";
 import {useComponentVisibility} from "./context/ComponentVisibilityContext";
-import {addDoc, collection, doc, serverTimestamp, setDoc, Timestamp} from "firebase/firestore";
+import {doc, serverTimestamp, setDoc, Timestamp} from "firebase/firestore";
 import {db} from "../backend/database/Firebase";
 import QuickInputWords from "./components/QuickInputWords";
 import DictToFlashcardModal from "./CRUD flashcard modals/DictToFlashcard";
@@ -48,9 +35,9 @@ const ResultScreen = ({route}) => {
     const colors = themes[theme];
     const {query} = route.params;
     const [hokkienTranslation, setHokkienTranslation] = useState("");
-    const [hokkienRomanized, setHokkienRomanized] = useState("");
+    // const [hokkienRomanized, setHokkienRomanized] = useState("");
     const [hokkienSentence, setHokkienSentence] = useState("");
-    const [hokkienSentenceRomanized, setHokkienSentenceRomanized] = useState("");
+    // const [hokkienSentenceRomanized, setHokkienSentenceRomanized] = useState("");
     const [dataFromDatabase, setDataFromDatabase] = useState(null);
     const {visibilityStates} = useComponentVisibility();
     const [progress, setProgress] = useState(0);
@@ -134,9 +121,8 @@ const ResultScreen = ({route}) => {
 
     const updateProgress = (amount) => {
         setProgress((currentProgress) => {
-            const updatedProgress = Math.min(currentProgress + amount, 1.0);
             // console.log("Current: " + currentProgress + " New: " + updatedProgress);
-            return updatedProgress;
+            return Math.min(currentProgress + amount, 1.0);
         });
     };
 
@@ -174,7 +160,7 @@ const ResultScreen = ({route}) => {
                 updateProgress(0.2);
                 if (!result) {
                     updateProgress(0.6);
-                    throw new Error("Failed to get translation.");
+                    console.error("Failed to get translation")
                 } else if (result.translation && result.sentence) {
                     setDataFromDatabase(result);
                     setHokkienTranslation(result.translation.hokkienTranslation);
@@ -201,7 +187,7 @@ const ResultScreen = ({route}) => {
             try {
                 const {imgBase64, error} = await generateImage(query);
                 if (error) {
-                    throw new Error(error); // Throw an error if one exists
+                    console.error(error) // Throw an error if one exists
                 }
                 setImageUrl(imgBase64);
                 updateProgress(0.2);
@@ -218,7 +204,8 @@ const ResultScreen = ({route}) => {
         }
     }, [hokkienTranslation, dataFromDatabase]);
 
-    if (progress < 1.0 && !romanizerErrorMessage && !imageErrorMessage && !feedbackErrorMessage && !databaseErrorMessage && !dismissedError) {
+    if (progress < 1.0 && !romanizerErrorMessage && !imageErrorMessage && !feedbackErrorMessage && !databaseErrorMessage
+        && !dismissedError) {
         return <LoadingScreen progress={progress}/>;
     }
 

@@ -1,17 +1,9 @@
 import { db } from "../Firebase.js";
 import { fetchNumericTones, fetchAudioBlob } from "../../API/TextToSpeechService.js";
-import { fetchRomanizer } from "../../API/HokkienHanziRomanizerService.js";
 import {
     collection,
-    doc,
-    setDoc,
     getDocs,
     query,
-    where,
-    getDoc,
-    limit,
-    updateDoc,
-    arrayUnion,
     writeBatch,
   } from "firebase/firestore";
 import { uploadAudioFromBlob } from "../Database.js";

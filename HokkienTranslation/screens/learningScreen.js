@@ -14,12 +14,9 @@ import {doc, getDoc} from "firebase/firestore";
 import getCurrentUser from "../backend/database/GetCurrentUser";
 import {Box, Button, Center, HStack, VStack,} from "native-base";
 import {useTheme} from "./context/ThemeProvider";
-import {FSRS, generatorParameters, Rating} from "ts-fsrs";
+import {FSRS, generatorParameters} from "ts-fsrs";
 import {createExtendedCard} from './components/extendedCard';
-import {useLanguage} from "./context/LanguageProvider";
 import TextToSpeech from "./components/TextToSpeech";
-import {getRomanization} from "../backend/flashcards/flashcardRomanizationFunctions";
-import {fetchRomanizer} from "../backend/API/HokkienHanziRomanizerService";
 import MixpanelService from "../backend/API/Mixpanel";
 import {recordDeckCompletion} from "../backend/badges/EventTracker";
 import {useToast} from "react-native-toast-notifications";
@@ -31,20 +28,20 @@ const LearningScreen = ({route}) => {
 
     const {theme, themes} = useTheme();
     const colors = themes[theme];
-    const [hokkienOption, setHokkienOption] = useState("Characters");
-    const [optionType, setOptionType] = useState("English");
-    const [isDisabled, setIsDisabled] = useState(false);
-    const [currentCardIndex, setCurrentCardIndex] = useState(0);
-    const [flashcards, setFlashcards] = useState([]);
+    // const [hokkienOption, setHokkienOption] = useState("Characters");
+    // const [optionType, setOptionType] = useState("English");
+    // const [isDisabled, setIsDisabled] = useState(false);
+    // const [currentCardIndex, setCurrentCardIndex] = useState(0);
+    // const [flashcards, setFlashcards] = useState([]);
     const [curCard, setCurCard] = useState(null);
     const [allFlashcards, setAllFlashcards] = useState([]);
     const [loading, setLoading] = useState(true);
     const slideAnim = useRef(new Animated.Value(0)).current;
     const opacityAnim = useRef(new Animated.Value(1)).current;
-    const [choiceIndex, setChoice] = useState(null);
-    const {languages} = useLanguage();
-    const [lang1, setLang1] = useState(languages[0]); // choices
-    const [lang2, setLang2] = useState(languages[1]); // question
+    // const [choiceIndex, setChoice] = useState(null);
+    // const {languages} = useLanguage();
+    // const [lang1, setLang1] = useState(languages[0]); // choices
+    // const [lang2, setLang2] = useState(languages[1]); // question
     const choices = ["Again", "Hard", "Good", "Easy"];
     const [schedulingCardList, setSchedulingCardList] = useState([]);
     const [FSRSscheduler, setFSRSscheduler] = useState(null);
@@ -171,8 +168,7 @@ const LearningScreen = ({route}) => {
     }, [curCard]);
     const fetchUser = async () => {
         try {
-            const user = await getCurrentUser();
-            currentUser = user;
+            currentUser = await getCurrentUser();
             // console.log("Current User: ", currentUser);
 
         } catch (error) {
@@ -183,7 +179,7 @@ const LearningScreen = ({route}) => {
 
     const handleChoice = async (number) => {
 
-        var choice = choices[number];
+        // var choice = choices[number];
         // get flashcard from schedulingcardList by flashcard ID
         var currentId = curCard.id;
 
@@ -260,10 +256,11 @@ const LearningScreen = ({route}) => {
             setCurCard(newF);
             setCurrentList("Again");
         } else {
+            let newF;
             // if there are new cards, set the flashcards to new, set the currentList to new
             if (newCardsX.length > 0) {
 
-                var newF = flashcardMapping(newCardsX[0], allFlashcards);
+                newF = flashcardMapping(newCardsX[0], allFlashcards);
                 setCurCard(newF);
 
                 setCurrentList("New");
@@ -271,13 +268,13 @@ const LearningScreen = ({route}) => {
             // if there are review cards, set the flashcards to review, set the currentList to review
             else if (dueReviewCards.length > 0) {
 
-                var newF = flashcardMapping(dueReviewCards[0], allFlashcards);
+                newF = flashcardMapping(dueReviewCards[0], allFlashcards);
                 setCurCard(newF);
                 setCurrentList("Review");
             } else if (againCardsX.length > 0) {
                 // if there are no more cards, set the flashcards to again, set the currentList to again
                 console.log("Again Cards 2.5:", againCardsX);
-                var newF = flashcardMapping(againCardsX[0], allFlashcards);
+                newF = flashcardMapping(againCardsX[0], allFlashcards);
                 console.log("Again Cards 3:", againCardsX);
                 setCurCard(newF);
                 setCurrentList("Again");
@@ -717,7 +714,7 @@ async function initalizeScheduler(flashcardList) {
     var scheduler = new FSRS();
 
 
-    const dueCards = cardList.filter(card => card.due <= new Date());
+    // const dueCards = cardList.filter(card => card.due <= new Date());
 
     // schedule at cards for now
     var scheduling_cards;
