@@ -22,6 +22,9 @@ class MixpanelService {
             await this.mixpanel.identify(user.uid);
             this.mixpanel.getPeople().set("$email", user.email);
             this.isInitialized = true;
+            this.mixpanel.registerSuperProperties({"$user_id": user.uid, "$email": user.email,
+            uid: user.uid})
+            this.mixpanel.flush();
         } catch (error) {
             console.error("Mixpanel identify error:", error);
         }
