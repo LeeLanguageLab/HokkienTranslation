@@ -15,6 +15,7 @@ import {LevelProgress} from "./StreaksAndLevelProgress/LevelProgress";
 import {StreakDisplay} from "./StreaksAndLevelProgress/StreakDisplay";
 import {Platform} from "react-native";
 import SettingsButton from "./components/SettingsButton";
+import {useToast} from "react-native-toast-notifications";
 
 import MixpanelService from "../backend/API/Mixpanel";
 
@@ -24,6 +25,7 @@ export default function HomeScreen({navigation}) {
     const {theme, themes} = useTheme();
     const colors = themes[theme];
     const [userCred, setUserCred] = useState(null);
+    const toast = useToast();
 
     // if (Platform.OS === "android") {
     //     const {
@@ -32,16 +34,31 @@ export default function HomeScreen({navigation}) {
     // }
     const [streakData, setStreakData] = useState({isNewStreak: false, streakCount: 0});
 
+    // useEffect(() => {
+    //     const updateStreak = async () => {
+    //         try {
+    //             const result = await checkAndUpdateStreak();
+    //             setStreakData(result);
+    //             console.log("isNewStreak: ", streakData.isNewStreak);
+    //
+    //             if (streakData.isNewStreak && streakData.streakCount > 1) {
+    //                 console.log("Toast for streaks is working")
+    //                 toast.show(`New Streak achieved of "${streakData.streakCount} days! Congratulations!"`, {
+    //                     type: 'success',
+    //                     placement: 'top',
+    //                     duration: 5000,
+    //                     animationType: 'slide-in',
+    //                 });
+    //
+    //             }
+    //         } catch (error) {
+    //             console.error("Error updating streak:", error);
+    //         }
+    //     };
+    //
+    //     updateStreak();
+    // }, []);
     useEffect(() => {
-        const updateStreak = async () => {
-            try {
-                const result = await checkAndUpdateStreak();
-                setStreakData(result);
-                console.log("isNewStreak: ", streakData.isNewStreak);
-            } catch (error) {
-                console.error("Error updating streak:", error);
-            }
-        };
         const initializeMixpanel = async () => {
             try {
                 await MixpanelService.initialize();
@@ -53,7 +70,6 @@ export default function HomeScreen({navigation}) {
         };
 
         initializeMixpanel();
-        updateStreak();
     }, []);
 
     useEffect(() => {
