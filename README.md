@@ -1,5 +1,5 @@
 # HokkienTranslation
-### Website: [hokkien-translation.netlify.app](https://hokkien-translation.netlify.app)
+### Website: [hokkien-phase2.netlify.app](https://hokkien-phase2.netlify.app)
 
 We have published 2 papers at NAACL 2025 (System Demo Track)!
 
