@@ -11,7 +11,7 @@ import {
   updateDoc,
   arrayUnion,
 } from "firebase/firestore";
-import { db } from "./Firebase.js";
+import { db } from "../Firebase.js";
 
 const categories = [
   "Daily Conversations",

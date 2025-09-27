@@ -16,8 +16,8 @@ import {
   arrayUnion,
 } from "firebase/firestore";
 import csvParser from 'csv-parser';
-import { db } from "./Firebase.js";
-import { uploadAudio } from "./Database.js";
+import { db } from "../Firebase.js";
+import { uploadAudio } from "../Database.js";
 import path from 'path';
 
 

@@ -38,6 +38,14 @@ export default function ForgetPasswordScreen({ navigation }) {
       source={require("../assets/background.png")}
       style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
     >
+    <Box
+        position="absolute"
+        top={0}
+        left={0}
+        right={0}
+        bottom={0}
+        backgroundColor={`${colors.primaryContainer}C0`}
+    />
       <Animated.View style={{ opacity: fadeAnim, width: '90%', maxWidth: 400 }}>
         <LinearGradient
           colors={['#fcfcfa', '#e0d4bc']}

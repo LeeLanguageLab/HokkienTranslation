@@ -3,13 +3,14 @@ import { Button, Text, HStack } from 'native-base';
 import { useTheme } from "../context/ThemeProvider";
 import { Ionicons } from '@expo/vector-icons';
 
-const CrudButtons = ({title, onPress, iconName}) => {
+const CrudButtons = ({title, onPress, iconName, isDisabled}) => {
   const { theme, themes } = useTheme();
   const colors = themes[theme];
   return (
     <Button 
       onPress={onPress} 
       bg={colors.primaryContainer} 
+      isDisabled={isDisabled}
       shadow={2}
       paddingX={4}
       paddingY={2}

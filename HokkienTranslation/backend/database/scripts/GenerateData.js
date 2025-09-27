@@ -8,8 +8,8 @@ import fetch from 'node-fetch'
 import csv from 'csv-parser';
 import csvParser from 'csv-parser';
 import { createObjectCsvWriter } from 'csv-writer';
-import { fetchNumericTones } from "../API/TextToSpeechService.js";
-import { fetchRomanizer } from "../API/HokkienHanziRomanizerService.js";
+import { fetchNumericTones } from "../../API/TextToSpeechService.js";
+import { fetchRomanizer } from "../../API/HokkienHanziRomanizerService.js";
 
 const TEXT_TO_SPEECH_API = process.env.SPEECH_API_URL;
 

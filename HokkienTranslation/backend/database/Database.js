@@ -91,7 +91,7 @@ export async function updateSentenceWithTranslation(
   });
 }
 
-// Upload audio to google storage
+// Upload audio to google storage from local file
 export async function uploadAudio(filename) {
   const localPath = `../../data/generated_audios/${filename}`;
   // console.log(localPath);
@@ -109,5 +109,19 @@ export async function uploadAudio(filename) {
   } catch (error) {
     console.error("Error uploading file:", error);
     throw error;
+  }
+}
+
+// same as UploadAudio.js
+// Upload audio to google storage from blob
+export async function uploadAudioFromBlob(numericTones, audioBlob) {
+  try {
+      const audioRef = storageRef(storage, `audios/${numericTones}.wav`);
+      const buffer = Buffer.from(await audioBlob.arrayBuffer());
+      const snapshot = await uploadBytes(audioRef, buffer, { contentType: "audio/wav" });
+      return await getDownloadURL(snapshot.ref);
+  } catch (error) {
+      console.error("Error uploading audio:", error);
+      throw error;
   }
 }

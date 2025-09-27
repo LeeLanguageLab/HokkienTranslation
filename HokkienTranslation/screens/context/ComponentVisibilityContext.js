@@ -8,8 +8,8 @@ export const useComponentVisibility = () =>
 export const ComponentVisibilityProvider = ({ children }) => {
   const [visibilityStates, setVisibilityStates] = useState({
     image: true,
-    definition: true,
-    englishDefinition: true,
+    // definition: true,
+    // englishDefinition: true,
     hokkienSentence: true,
     chineseSentence: true,
     englishSentence: true,
@@ -18,8 +18,8 @@ export const ComponentVisibilityProvider = ({ children }) => {
 
   const [flashcardVisibilityStates, setFlashcardVisibilityStates] = useState({
     image: true,
-    definition: true,
-    englishDefinition: true,
+    // definition: true,
+    // englishDefinition: true,
     hokkienSentence: true,
     chineseSentence: true,
     englishSentence: true,

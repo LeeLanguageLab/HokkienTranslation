@@ -33,41 +33,42 @@ const CategoryModal = React.memo(({ modalVisible, setModalVisible, onSave, getCa
         const docRef = await addDoc(collectionRef, {
           name: newCategoryName,
         })
-        
+
         getCategories(db).then((categoryList) => {
-          categories = categoryList;
+            let categories;
+            categories = categoryList;
           console.log(categories);
           setDisplay(categoryList);
-        
+
         }).catch((error) => {
           console.error("Error fetching categories: ", error);
         });
-  
+
       } catch (e) {
         console.error("Error adding document: ", e);
       }
-  
+
       setNewCategoryName('');
       setNewDescription('');
       setModalVisible(false);
     };
-  
+
     const handleCancel = () => {
       setModalVisible(false);
       setNewCategoryName('');
       setNewDescription('');
     };
     const [checkboxmodalVisible, setCheckBoxModalVisible] = useState(false);
-  
-    
+
+
 
     return (
-      
+
       <Modal
         animationType="slide"
         isOpen={modalVisible}
-        onClose={() => setModalVisible(false)} 
-        
+        onClose={() => setModalVisible(false)}
+
       >
         <View style={styles.popupcontainer}>
           <View style={styles.modalView}>
@@ -91,9 +92,9 @@ const CategoryModal = React.memo(({ modalVisible, setModalVisible, onSave, getCa
              {alldecks.map((category, index) => (
                  <View key={index} style={styles.checkboxContainer}>
                  <Checkbox value={category.name}
-                 
+
                  > </Checkbox>
-               
+
                  <Text style={styles.label}>{category.name}</Text>
                </View>
              ))}
@@ -113,12 +114,12 @@ const CategoryModal = React.memo(({ modalVisible, setModalVisible, onSave, getCa
             </View>
           </View>
         </View>
-        
+
       </Modal>
-      
-     
-      
-      
+
+
+
+
     );
   });
 
@@ -187,7 +188,7 @@ const styles = StyleSheet.create({
       minWidth: "48%",
       width: "48%",
       borderStyle: 'dashed',
-  
+
       alignItems: 'center',
       backgroundColor: 'white',
       borderColor: '#000000',
@@ -201,7 +202,7 @@ const styles = StyleSheet.create({
       shadowRadius: 4,
       elevation: 1,
     },
-  
+
     container: {
       width: '90%',
       maxWidth: 400,
@@ -225,7 +226,7 @@ const styles = StyleSheet.create({
     categoryBox: {
       minWidth: "48%",
       width: "48%",
-  
+
       alignItems: 'center',
       backgroundColor: 'white',
       borderColor: '#e0e0e0',
@@ -293,4 +294,3 @@ const styles = StyleSheet.create({
     },
   });
   export default CategoryModal;
-

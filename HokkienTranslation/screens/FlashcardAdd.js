@@ -265,8 +265,11 @@ const FlashcardAdd = ({ route }) => {
               style={{ marginLeft: 10 }}
               onTrackColor={colors.primary}
             />
+            <Text style={{ color: colors.onSurfaceVariant, marginLeft: 10, fontSize: 12}}>
+              Sharing means anyone can view or edit your deck.
+            </Text>
           </HStack>
-          <Text> Select at least one flashcard.</Text>
+          <Text>Select at least one base flashcard. You can create custom flashcards on the next page.</Text>
           <TouchableOpacity
             onPress={handleSubmission}
             disabled={selectedFlashcards.length === 0}
