@@ -12,7 +12,9 @@
     "build": "tsc",
     "build:watch": "tsc --watch",
     "start": "node dist/translation.js",
+    "start:speech": "node dist/asr.js",
     "dev": "tsc && node dist/translation.js",
+    "dev:speech": "tsc && node dist/asr.js",
     "clean": "rm -rf dist"
   }
 }
