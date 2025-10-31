@@ -36,6 +36,10 @@ import SignOut from "./screens/components/Signout";
 import UsernameScreen from "./screens/UsernameScreen";
 import FlashcardBoxScreen from "./screens/FlashcardBoxScreen";
 
+import SpeakingPracticesScreen from "./screens/SpeakingPractice/SpeakingPracticesScreen";
+import DialogueScreen from "./screens/SpeakingPractice/DialogueScreen";
+import TailoCompareTest from "./screens/SpeakingPractice/TailoCompareTest";
+
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
@@ -72,6 +76,28 @@ const HomeStack = () => {
                 component={FlashcardBoxScreen}
                 options={{title: "Your Flashcard Learning Progress"}}
             />
+
+            <Stack.Screen
+              name="SpeakingPractices"
+              component={SpeakingPracticesScreen}
+              options={{ title: "Speaking Practice" }}
+            />
+
+            <Stack.Screen
+              name="Dialogue"
+              component={DialogueScreen}
+              options={{ title: "Dialogue" }}
+            />
+
+            <Stack.Screen
+                name="TailoCompareTest"
+                component={TailoCompareTest}
+                options={{
+                    headerShown: true,
+                    title: "Tailo Compare Test",
+                }}
+            />
+
 
         </Stack.Navigator>
     );

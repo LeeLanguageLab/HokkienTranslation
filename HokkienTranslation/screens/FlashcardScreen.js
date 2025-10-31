@@ -40,6 +40,7 @@ import {recordDeckCompletion} from "../backend/badges/EventTracker";
 import {useToast} from "react-native-toast-notifications";
 import getCurrentUserActual from "../backend/database/GetCurrentUserActual";
 import {StudyButton} from "./components/StudyButton";
+import {SpeakingPracticeButton} from "./components/SpeakingPracticeButton";
 import {createRomanization} from "../backend/flashcards/flashcardRomanizationFunctions";
 import {setFlashcard, updateFlashcardData} from "../backend/flashcards/flashcardPutFunctions";
 
@@ -1102,10 +1103,18 @@ const FlashcardScreen = ({route, navigation}) => {
                         word={flashcards[currentCardIndex].word}
                         translation={flashcards[currentCardIndex].translation}
                     />
-                    <StudyButton
-                        colors={colors}
-                        flashcardListName={flashcardListName}
-                    />
+
+                    <HStack space={2} justifyContent="center" mt={4}>
+                        <StudyButton
+                            colors={colors}
+                            flashcardListName={flashcardListName}
+                        />
+
+                        <SpeakingPracticeButton
+                            colors={colors}
+                            flashcardListName={flashcardListName}
+                        />
+                    </HStack>
                 </Center>
 
             </Box>

@@ -16,6 +16,7 @@ import {StreakDisplay} from "./StreaksAndLevelProgress/StreakDisplay";
 import {Platform} from "react-native";
 import SettingsButton from "./components/SettingsButton";
 import {useToast} from "react-native-toast-notifications";
+import { Button } from "native-base";
 
 import MixpanelService from "../backend/API/Mixpanel";
 
@@ -224,6 +225,17 @@ export default function HomeScreen({navigation}) {
                         />
                     </Box>
                 )}
+
+                <Button
+                  onPress={() => navigation.navigate("TailoCompareTest")}
+                  bg={colors.primaryContainer}
+                  _text={{ color: colors.onPrimaryContainer, fontWeight: "bold" }}
+                  mt={6}
+                  w="80%"
+                >
+                  Go to Tailo Compare Test
+                </Button>
+
             </VStack>
         </ScrollView>
     );
