@@ -6,6 +6,9 @@ import { Audio } from "expo-av";
 import { useTheme } from "../context/ThemeProvider";
 import { db } from "../../backend/database/Firebase";
 import { doc, getDoc } from "firebase/firestore";
+import AudioPromptRecorder from "../components/AudioPromptRecorder";
+import { auth } from "../../backend/database/Firebase"; // if you want user uid
+
 
 export default function DialogueScreen({ route, navigation }) {
   const { themes, theme } = useTheme();
@@ -115,6 +118,20 @@ export default function DialogueScreen({ route, navigation }) {
             {item.engText}
           </Text>
         )}
+
+          {/* Recorder below this line */}
+          {(item.speaker === "user" || item.speaker === "B") && (<AudioPromptRecorder
+            dialogueId={route.params?.dialogueId}
+            lineIndex={index}
+            userId={auth?.currentUser?.uid ?? "anon"}
+            onSaved={(url) => {
+              // optional: store user's attempt in local state or Firestore here
+              // console.log("Saved to:", url);
+            }}
+            onDeleted={() => {
+              // optional: react when deleted
+            }}
+          />)}
       </Box>
     );
   };
