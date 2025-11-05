@@ -120,18 +120,19 @@ export default function DialogueScreen({ route, navigation }) {
         )}
 
           {/* Recorder below this line */}
-          {(item.speaker === "user" || item.speaker === "B") && (<AudioPromptRecorder
-            dialogueId={route.params?.dialogueId}
-            lineIndex={index}
-            userId={auth?.currentUser?.uid ?? "anon"}
-            onSaved={(url) => {
-              // optional: store user's attempt in local state or Firestore here
-              // console.log("Saved to:", url);
-            }}
-            onDeleted={() => {
-              // optional: react when deleted
-            }}
-          />)}
+            {(item.speaker === "user" || item.speaker === "B") && (
+              <AudioPromptRecorder
+                serverUrl={"http://127.0.0.1:8000/transcribe"} // or tunneled http://127.0.0.1:8000/transcribe
+                targetTailo={item.tailoRomanization || ""}       // <-- pass the target here
+                dialogueId={route.params?.dialogueId}
+                lineIndex={index}
+                userId={auth?.currentUser?.uid ?? "anon"}
+                onSaved={(uri) => {
+                  // optional: store user's local recording uri somewhere
+                }}
+                onDeleted={() => {}}
+              />
+            )}
       </Box>
     );
   };
