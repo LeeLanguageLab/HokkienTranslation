@@ -1,22 +1,15 @@
+// screens/components/AudioPromptRecorder.js
 import React, { useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
-import { Box, HStack, VStack, Text, Button, IconButton, Spinner } from "native-base";
+import { Box, HStack, VStack, Text, Button, Spinner, Alert } from "native-base";
 import { Ionicons } from "@expo/vector-icons";
 import { Audio } from "expo-av";
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { useTheme } from "../context/ThemeProvider";
 
-// NOTE: Expo Recording saves .m4a (AAC). Expo cannot natively encode WAV.
-// If you strictly need WAV, convert in a backend (Cloud Function) after upload.
-// Here we upload .m4a and set the correct contentType.
-
 export default function AudioPromptRecorder({
-  dialogueId,
-  lineIndex,
-  userId = "anon",          // pass current user uid if available
-  onSaved,                  // (url) => void
-  onDeleted,                // () => void
-  storageFolder = "userRecordings" // change if you want a different folder
+  serverUrl = "http://127.0.0.1:8000/transcribe",
+  onSaved,
+  onDeleted,
 }) {
   const { themes, theme } = useTheme();
   const colors = themes[theme];
@@ -25,10 +18,13 @@ export default function AudioPromptRecorder({
   const [isRecording, setIsRecording] = useState(false);
   const [recording, setRecording] = useState(null);
   const [localUri, setLocalUri] = useState("");
-  const [uploading, setUploading] = useState(false);
-  const [downloadUrl, setDownloadUrl] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const [elapsed, setElapsed] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
+
   const soundRef = useRef(null);
-  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -37,11 +33,9 @@ export default function AudioPromptRecorder({
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
-        staysActiveInBackground: false
+        staysActiveInBackground: false,
       });
     })();
-
-    // cleanup sound if unmounted
     return () => {
       if (soundRef.current) soundRef.current.unloadAsync().catch(() => {});
     };
@@ -49,20 +43,20 @@ export default function AudioPromptRecorder({
 
   const startRecording = async () => {
     if (!permission) return;
-
     try {
-      // Ensure any previous recording is cleaned up
       if (recording) {
-        await recording.stopAndUnloadAsync();
+        await recording.stopAndUnloadAsync().catch(() => {});
         setRecording(null);
       }
-
       const rec = new Audio.Recording();
-      const options = Audio.RecordingOptionsPresets.HIGH_QUALITY; // m4a AAC
+      const options = Audio.RecordingOptionsPresets.HIGH_QUALITY; // .m4a AAC
       await rec.prepareToRecordAsync(options);
       await rec.startAsync();
       setRecording(rec);
       setIsRecording(true);
+      setTranscript("");
+      setElapsed(null);
+      setErrorMsg("");
     } catch (e) {
       console.warn("startRecording error:", e?.message || e);
       setIsRecording(false);
@@ -70,29 +64,32 @@ export default function AudioPromptRecorder({
   };
 
   const stopRecording = async () => {
+    if (!recording) return;
     try {
-      if (!recording) return;
+      setBusy(true);
       await recording.stopAndUnloadAsync();
-      const uri = recording.getURI();
-      setLocalUri(uri || "");
+      const uri = recording.getURI() || "";
+      setLocalUri(uri);
       setRecording(null);
       setIsRecording(false);
+      onSaved && onSaved(uri);
+      console.log("Local recording URI:", uri);
     } catch (e) {
       console.warn("stopRecording error:", e?.message || e);
+    } finally {
+      setBusy(false);
     }
   };
 
   const playLocal = async () => {
-    if (!localUri && !downloadUrl) return;
-    const uri = localUri || downloadUrl;
-
+    if (!localUri) return;
     try {
       if (soundRef.current) {
         await soundRef.current.stopAsync().catch(() => {});
         await soundRef.current.unloadAsync().catch(() => {});
         soundRef.current = null;
       }
-      const { sound } = await Audio.Sound.createAsync({ uri });
+      const { sound } = await Audio.Sound.createAsync({ uri: localUri });
       soundRef.current = sound;
       await sound.playAsync();
       sound.setOnPlaybackStatusUpdate(async (s) => {
@@ -106,65 +103,73 @@ export default function AudioPromptRecorder({
     }
   };
 
-  const upload = async () => {
-    if (!localUri) return;
-    setUploading(true);
+  const clearLocal = async () => {
     try {
-      const resp = await fetch(localUri);
-      const blob = await resp.blob();
-
-      const storage = getStorage();
-      const ts = Date.now();
-      const fileName = `d${dialogueId || "na"}-i${lineIndex}-u${userId}-${ts}.m4a`;
-      const path = `${storageFolder}/${fileName}`;
-      const storageRef = ref(storage, path);
-
-      await uploadBytes(storageRef, blob, { contentType: "audio/mp4" }); // m4a = audio/mp4
-      const url = await getDownloadURL(storageRef);
-      setDownloadUrl(url);
-      onSaved?.(url);
-    } catch (e) {
-      console.error("Upload failed:", e);
+      setBusy(true);
+      if (soundRef.current) {
+        await soundRef.current.stopAsync().catch(() => {});
+        await soundRef.current.unloadAsync().catch(() => {});
+        soundRef.current = null;
+      }
+      setLocalUri("");
+      setTranscript("");
+      setElapsed(null);
+      setErrorMsg("");
+      onDeleted && onDeleted();
     } finally {
-      setUploading(false);
+      setBusy(false);
     }
   };
 
-  const deleteUploaded = async () => {
-    if (!downloadUrl) {
-      onDeleted?.();
-      setLocalUri("");
-      return;
-    }
-    setDeleting(true);
-    try {
-      // extract the path from the downloadUrl
-      // URL form: https://firebasestorage.googleapis.com/v0/b/<bucket>/o/<encodedPath>?alt=media&token=...
-      const match = downloadUrl.match(/\/o\/([^?]+)/);
-      const encodedPath = match ? match[1] : "";
-      const filePath = decodeURIComponent(encodedPath);
+    const transcribe = async () => {
+      if (!localUri) return;
+      setTranscribing(true);
+      setErrorMsg("");
 
-      const storage = getStorage();
-      const storageRef = ref(storage, filePath);
-      await deleteObject(storageRef);
+      try {
+        const form = new FormData();
 
-      setDownloadUrl("");
-      setLocalUri("");
-      onDeleted?.();
-    } catch (e) {
-      console.error("Delete failed:", e);
-    } finally {
-      setDeleting(false);
-    }
-  };
+        if (Platform.OS === "web") {
+          // Convert blob: URL → Blob data
+          const resp = await fetch(localUri);
+          const blob = await resp.blob();
 
-  const showRecordControls = !localUri && !downloadUrl;
+          // Important: tell the backend the filename + correct mime type
+          form.append("file", blob, "recording.m4a");
+        } else {
+          // iOS / Android local file uri
+          form.append("file", {
+            uri: localUri.startsWith("file://") ? localUri : `file://${localUri}`,
+            name: "recording.m4a",
+            type: "audio/mp4",
+          });
+        }
+
+        const res = await fetch(serverUrl, { method: "POST", body: form });
+
+        if (!res.ok) {
+          const txt = await res.text();
+          throw new Error(`HTTP ${res.status}: ${txt.slice(0, 300)}`);
+        }
+
+        const data = await res.json();
+        setTranscript(data.text || "");
+        setElapsed(data.elapsed_sec ?? null);
+      } catch (e) {
+        setErrorMsg(e?.message || String(e));
+      } finally {
+        setTranscribing(false);
+      }
+    };
+
+
+  const showRecordControls = !localUri;
 
   return (
     <Box mt={2} p={3} borderWidth={1} borderColor={colors.outline} borderRadius="lg" bg={colors.surface}>
-      <VStack space={2}>
+      <VStack space={3}>
         <Text fontSize="sm" color={colors.onSurfaceVariant}>
-          Your attempt (records locally, uploads to cloud):
+          Your attempt:
         </Text>
 
         {showRecordControls ? (
@@ -173,67 +178,87 @@ export default function AudioPromptRecorder({
               bg={isRecording ? "red.500" : colors.onPrimaryContainer}
               _text={{ color: colors.primaryContainer, fontWeight: "bold" }}
               onPress={isRecording ? stopRecording : startRecording}
-              leftIcon={<Ionicons name={isRecording ? "stop" : "mic"} size={18} color={colors.primaryContainer} />}
+              leftIcon={
+                <Ionicons
+                  name={isRecording ? "stop" : "mic"}
+                  size={18}
+                  color={colors.primaryContainer}
+                />
+              }
+              isDisabled={permission === false || busy}
             >
               {isRecording ? "Stop" : "Record"}
             </Button>
             <Text fontSize="xs" color={colors.onSurfaceVariant}>
-              {isRecording ? "Recording…" : "Tap to start"}
+              {permission === false
+                ? "Microphone permission denied"
+                : isRecording
+                ? "Recording…"
+                : "Tap to start"}
             </Text>
+            {busy ? <Spinner size="sm" color={colors.onPrimaryContainer} /> : null}
           </HStack>
         ) : (
           <>
-            <HStack space={3} alignItems="center">
+            <HStack space={3} alignItems="center" flexWrap="wrap">
               <Button
                 bg={colors.onPrimaryContainer}
                 _text={{ color: colors.primaryContainer, fontWeight: "bold" }}
                 onPress={playLocal}
                 leftIcon={<Ionicons name="play" size={18} color={colors.primaryContainer} />}
+                isDisabled={busy}
               >
                 Play
               </Button>
 
-              {!downloadUrl ? (
-                <Button
-                  onPress={upload}
-                  isDisabled={uploading}
-                  bg={colors.onPrimaryContainer}
-                  _text={{ color: colors.primaryContainer, fontWeight: "bold" }}
-                  leftIcon={
-                    uploading ? undefined : <Ionicons name="cloud-upload" size={18} color={colors.primaryContainer} />
-                  }
-                >
-                  {uploading ? <Spinner color={colors.primaryContainer} /> : "Upload"}
-                </Button>
-              ) : (
-                <HStack space={2} alignItems="center">
-                  <Ionicons name="cloud-done" size={18} color={colors.onPrimaryContainer} />
-                  <Text fontSize="xs" color={colors.onSurfaceVariant}>Uploaded</Text>
-                </HStack>
-              )}
+              <Button
+                bg={colors.onPrimaryContainer}
+                _text={{ color: colors.primaryContainer, fontWeight: "bold" }}
+                onPress={transcribe}
+                isDisabled={busy || transcribing}
+                leftIcon={
+                  transcribing
+                    ? undefined
+                    : <Ionicons name="cloud-upload" size={18} color={colors.primaryContainer} />
+                }
+              >
+                {transcribing ? <Spinner color={colors.primaryContainer} /> : "Transcribe"}
+              </Button>
 
               <Button
-                onPress={deleteUploaded}
-                isDisabled={deleting}
+                onPress={clearLocal}
+                isDisabled={busy || transcribing}
                 bg="muted.600"
                 _text={{ color: "white" }}
                 leftIcon={<Ionicons name="close" size={18} color="white" />}
               >
-                {deleting ? "Deleting…" : "Exit"}
+                Exit
               </Button>
             </HStack>
 
-            {downloadUrl ? (
-              <Text fontSize="xs" color={colors.onSurfaceVariant} numberOfLines={1}>
-                {downloadUrl}
-              </Text>
-            ) : localUri ? (
-              <Text fontSize="xs" color={colors.onSurfaceVariant}>
-                Local file ready to upload
-              </Text>
-            ) : null}
+            <Text fontSize="xs" color={colors.onSurfaceVariant} selectable>
+              URI: {localUri}
+            </Text>
           </>
         )}
+
+        {errorMsg ? (
+          <Alert status="error" borderRadius="md" bg="error.100">
+            <Text color="error.700" fontSize="xs">{errorMsg}</Text>
+          </Alert>
+        ) : null}
+
+        {transcript ? (
+          <VStack space={1} mt={1} p={2} borderWidth={1} borderColor={colors.outline} borderRadius="md">
+            <Text fontWeight="bold" color={colors.onSurface}>Transcript</Text>
+            <Text color={colors.onSurfaceVariant}>{transcript}</Text>
+            {elapsed != null ? (
+              <Text mt={1} fontSize="xs" color={colors.onSurfaceVariant}>
+                Model time: {elapsed}s
+              </Text>
+            ) : null}
+          </VStack>
+        ) : null}
       </VStack>
     </Box>
   );
