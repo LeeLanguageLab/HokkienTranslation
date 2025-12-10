@@ -83,18 +83,9 @@ export default function GenerateConversationButton({ flashcardListName, onComple
         throw new Error("None of the flashcards have usable words for conversation.");
 
       // generate conversation
-      const convoData = await generateConversation(flashcardListName, context, vocabList);
-
-      // save conversation
-      const newDialogueDoc = await addDoc(collection(db, "speakingPracticeDialogues"), {
-        title: `${flashcardListName} Conversation`,
-        context: convoData.context,
-        dialogue: convoData.dialogue,
-        createdAt: convoData.createdAt,
-      });
-
-      // 6️⃣ Link to flashcard list
-      await updateDoc(listRef, { speakingPracticeDialogues: arrayUnion(newDialogueDoc.id) });
+      const convoData = await generateConversation(flashcardListName, context, vocabList, flashcardListName);
+      // Link backend-generated document to flashcard list
+      await updateDoc(listRef, { speakingPracticeDialogues: arrayUnion(convoData.id) });
 
       if (onComplete) onComplete();
     } catch (err) {

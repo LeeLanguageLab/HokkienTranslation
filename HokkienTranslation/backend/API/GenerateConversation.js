@@ -6,6 +6,10 @@ import { getFirestore, collection, addDoc } from "firebase/firestore";
 
 
 const generateConversation = async (topicName, context, vocabList, flashcardListId = null, title = null) => {
+      // Guard: flashcardListId must be present
+      if (!flashcardListId) {
+        throw new Error("flashcardListId is required and must not be null or undefined.");
+      }
   try {
     const englishVocabList = vocabList.map(v => v.destination || v).filter(Boolean);
     const prompt = `
@@ -71,28 +75,27 @@ const generateConversation = async (topicName, context, vocabList, flashcardList
     let summaryTitle = title;
     try {
       const convoText = dialogueLines.map(d => `${d.speaker}: ${d.engText}`).join('\n');
-      const hash = Math.abs(convoText.split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % 100000;
-      const titlePrompt = `Given the following 7-line conversation, generate a unique, short, and descriptive title (maximum 5 words) that summarizes the conversation. Only return the title, no punctuation at the end.\n\nConversation:\n${convoText}`;
+      const titlePrompt = `Given the following 7-line conversation, generate a unique, short, and descriptive title (maximum 5 words, no numbers or special symbols) that summarizes the conversation. Only return the title, no punctuation at the end.\n\nConversation:\n${convoText}`;
       let aiTitle = await callOpenAIChat(titlePrompt);
-      aiTitle = aiTitle.replace(/[\s\-_,.;:!?]+$/, '').trim();
+      // Remove numbers and special symbols
+      aiTitle = aiTitle.replace(/[^a-zA-Z\s]/g, '').replace(/[\s]+$/, '').trim();
       const words = aiTitle.split(/\s+/).filter(Boolean);
       let baseTitle = words.slice(0, 5).join(' ');
       if (!baseTitle) baseTitle = topicName;
-      summaryTitle = `${baseTitle} #${hash}`;
+      summaryTitle = baseTitle;
     } catch (e) {
       // fallback to previous logic if OpenAI fails
       const firstLine = dialogueLines.length > 0 ? dialogueLines[0].engText : topicName;
-      const words = firstLine.split(/\s+/).filter(Boolean);
+      const words = firstLine.replace(/[^a-zA-Z\s]/g, '').split(/\s+/).filter(Boolean);
       let baseTitle = words.slice(0, 5).join(' ');
       if (!baseTitle) baseTitle = topicName;
-      // Add a hash for uniqueness
-      const convoText = dialogueLines.map(d => `${d.speaker}: ${d.engText}`).join('\n');
-      const hash = Math.abs(convoText.split('').reduce((a, c) => a + c.charCodeAt(0), 0)) % 100000;
-      summaryTitle = `${baseTitle} #${hash}`;
+      summaryTitle = baseTitle;
     }
 
     // Prepare Firestore upload
     const db = getFirestore();
+    // Always create a new document, even if flashcardListId and topic are similar
+    const colRef = collection(db, "speakingPracticeDialogues");
     const docData = {
       context: contextSummary,
       dialogue: dialogueLines,
@@ -100,12 +103,9 @@ const generateConversation = async (topicName, context, vocabList, flashcardList
       title: summaryTitle,
       createdAt: new Date().toISOString(),
     };
-
-    // Upload
-    const docRef = await addDoc(collection(db, "speakingPracticeDialogues"), docData);
+    const docRef = await addDoc(colRef, docData);
     console.log("Uploaded conversation to Firestore with ID:", docRef.id);
-
-    // Return Firestore document data and ID
+    // Return the Firestore document data and ID
     return { ...docData, id: docRef.id };
   } catch (error) {
     console.error("Error generating conversation:", error);
