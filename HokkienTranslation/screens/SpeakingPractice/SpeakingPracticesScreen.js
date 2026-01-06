@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { FlatList } from "react-native";
 import { Box, VStack, HStack, Text, Spinner, Pressable } from "native-base";
 import { useTheme } from "../context/ThemeProvider";
+import GenerateConversationButton from "../components/GenerateConversationButton";
 import { db } from "../../backend/database/Firebase";
 import {
   collection,
@@ -53,6 +54,7 @@ export default function SpeakingPracticesScreen({ route, navigation }) {
         const d = await getDoc(ref);
         if (d.exists()) {
           const data = d.data();
+          console.log(`[SpeakingPracticesScreen] Loaded conversation: id=${d.id}, title=`, data.title);
           results.push({
             id: d.id,
             title: data.title || "(Untitled)",
@@ -60,13 +62,13 @@ export default function SpeakingPracticesScreen({ route, navigation }) {
             dialogueCount: Array.isArray(data.dialogue) ? data.dialogue.length : 0,
           });
         } else {
-          // keep placeholder for missing doc
-          results.push({
-            id,
-            title: `(Missing: ${id})`,
-            context: "",
-            dialogueCount: 0,
-          });
+          // // keep placeholder for missing doc
+          // results.push({
+          //   id,
+          //   title: `(Missing: ${id})`,
+          //   context: "",
+          //   dialogueCount: 0,
+          // });
         }
       }
 
@@ -155,20 +157,31 @@ export default function SpeakingPracticesScreen({ route, navigation }) {
         <VStack mx={4} mt={4}>
           <Text color="red.500">Error: {err}</Text>
         </VStack>
-      ) : items.length === 0 ? (
-        <VStack mx={4} mt={4}>
-          <Text color={colors.onSurfaceVariant}>
-            No speaking practice dialogues for this deck yet.
-          </Text>
-        </VStack>
       ) : (
-        <FlatList
-          data={items}
-          keyExtractor={(it) => it.id}
-          renderItem={renderItem}
-          contentContainerStyle={{ paddingBottom: 24 }}
-        />
+        <>
+        <Box justifyContent="center" alignItems="center">
+          <GenerateConversationButton
+          flashcardListName={flashcardListName}
+          onComplete={loadData}
+          />
+        </Box>
+
+        {items.length === 0 ? (
+          <VStack mx={4} mt={4}>
+            <Text color={colors.onSurfaceVariant}>
+            No speaking practice dialogues for this deck yet.
+            </Text>
+          </VStack>
+        ) : (
+          <FlatList
+            data={items}
+            keyExtractor={(it) => it.id}
+            renderItem={renderItem}
+            contentContainerStyle={{ paddingBottom: 24 }}
+          />
+        )}
+        </>
       )}
-    </Box>
+      </Box>
   );
 }
